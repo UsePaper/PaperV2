@@ -53,17 +53,22 @@ pub fn run() {
         .build(tauri::generate_context!())
         .expect("error while building tauri application");
 
-    app.run(|handle, event| {
+    app.run(|_handle, _event| {
         // Finder opening a file, whether the app was already running or was
         // launched by the double click itself.
-        if let tauri::RunEvent::Opened { urls } = event {
+        //
+        // Only macOS delivers a file this way, and only macOS has the variant:
+        // naming it anywhere else does not compile. Everywhere else the path
+        // arrives as an argument and is handled in `setup` above.
+        #[cfg(target_os = "macos")]
+        if let tauri::RunEvent::Opened { urls } = _event {
             let paths: Vec<String> = urls
                 .iter()
                 .filter_map(|url| url.to_file_path().ok())
                 .map(|path| path.to_string_lossy().into_owned())
                 .collect();
             if !paths.is_empty() {
-                commands::window::open_paths(handle, paths);
+                commands::window::open_paths(_handle, paths);
             }
         }
     });
