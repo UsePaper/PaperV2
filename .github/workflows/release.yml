@@ -23,11 +23,11 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: pnpm
@@ -37,7 +37,7 @@ jobs:
           # Both, because the bundle is universal.
           targets: aarch64-apple-darwin, x86_64-apple-darwin
 
-      - uses: swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
 
@@ -57,7 +57,7 @@ jobs:
           printf '%s' "$APPLE_API_KEY_BASE64" | base64 --decode > ~/private_keys/AuthKey.p8
           chmod 600 ~/private_keys/AuthKey.p8
 
-      - uses: tauri-apps/tauri-action@v0
+      - uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Signing. tauri-action imports the certificate into a temporary
