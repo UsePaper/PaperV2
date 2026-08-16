@@ -1,0 +1,41 @@
+[package]
+name = "paperv2"
+version = "0.1.0"
+description = "A minimal WYSIWYG Markdown editor"
+authors = ["Rafi"]
+edition = "2021"
+
+[lib]
+# The `_lib` suffix keeps the library name from colliding with the binary name
+# on Windows. See https://github.com/rust-lang/cargo/issues/8519
+name = "paperv2_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+notify = "8.2.0"
+
+# Only to read where macOS drew the traffic lights. Both crates already come in
+# through tauri, so this pins no new versions.
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2-app-kit = { version = "0.3", features = [
+  "NSWindow",
+  "NSButton",
+  "NSControl",
+  "NSView",
+  "NSResponder",
+] }
+
+# Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = 3
+panic = "abort"
+strip = true

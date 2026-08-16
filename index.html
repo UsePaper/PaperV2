@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PaperV2</title>
+    <script type="module" src="/src/main.ts" defer></script>
+  </head>
+
+  <body>
+    <header id="titlebar" class="titlebar"></header>
+    <div id="findbar" class="findbar" hidden></div>
+    <main id="workspace" class="workspace">
+      <div id="editor" class="editor"></div>
+      <textarea
+        id="source"
+        class="source"
+        spellcheck="false"
+        aria-label="Markdown source"
+      ></textarea>
+    </main>
+    <footer id="statusbar" class="statusbar"></footer>
+    <div id="settings" class="settings-backdrop" hidden></div>
+  </body>
+</html>

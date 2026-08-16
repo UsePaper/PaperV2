@@ -1,0 +1,958 @@
+/* Layout and editor structure. Colours live in light.css and dark.css. */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+/* The chrome uses the system font at a system size. The editor, and only the
+   editor, follows the font settings. */
+body {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text);
+  background: var(--background);
+  -webkit-font-smoothing: antialiased;
+}
+
+.editor {
+  font-family: var(--font-body);
+  font-size: var(--font-size);
+  line-height: var(--line-height);
+}
+
+/* Title bar ---------------------------------------------------------------- */
+
+/* The window keeps its native frame, so this bar only carries the document
+   name. The system draws the buttons, the corners and the shadow.
+
+   Glass: the bar floats over the page and the text passes beneath it, blurred
+   through the material, the way an Apple toolbar behaves. */
+.titlebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 10;
+  height: var(--titlebar-height);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  background: var(--bar-glass);
+  -webkit-backdrop-filter: var(--bar-blur);
+  backdrop-filter: var(--bar-blur);
+  /* No edge, as with the bottom bar: the tint and the blur of the page running
+     under it are what tell it apart. */
+  user-select: none;
+}
+
+/* A fallback only. ui/titlebar.ts asks AppKit where the traffic lights really
+   are and sets the padding from that; this covers the moment before the answer
+   arrives, and any case where the measurement is unavailable. It matches what
+   the measurement returns today, so the name does not shift when it lands. */
+body[data-platform="mac"] .titlebar {
+  padding-left: 81px;
+}
+
+.titlebar-title {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Every control inside the drag region has to opt out of dragging. */
+.titlebar button {
+  -webkit-app-region: no-drag;
+}
+
+/* The one control the chrome carries: which of the two modes the document is
+   being shown in. It says so by how present it is and nothing more. A filled
+   patch of colour up here competes with the page, and the page already shows
+   which mode it is in. */
+.titlebar-mode {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 20px;
+  flex: none;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--marker);
+  cursor: default;
+  transition: color 140ms ease;
+}
+
+.titlebar-mode:hover {
+  color: var(--text);
+}
+
+/* Nothing to write into while reading, so the hint would be a lie. */
+body.mode-reading .pm-placeholder::before {
+  content: none;
+}
+
+/* Workspace ---------------------------------------------------------------- */
+
+.workspace {
+  position: relative;
+  height: 100%;
+  overflow-y: auto;
+  /* The bars sit on top, so the page reserves their height but still scrolls
+     underneath them. */
+  padding-top: var(--titlebar-height);
+  padding-bottom: var(--statusbar-height);
+}
+
+.editor,
+.source {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 48px 32px 40vh;
+}
+
+.source {
+  display: none;
+  width: 100%;
+  min-height: 100%;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  line-height: var(--line-height);
+  color: var(--text);
+  background: transparent;
+}
+
+body.source-mode .editor {
+  display: none;
+}
+
+body.source-mode .source {
+  display: block;
+}
+
+/* Find bar ----------------------------------------------------------------- */
+
+/* Floats over the top right rather than reserving a strip: opening it must not
+   shift the text being read. Matches are revealed centred, so it cannot cover
+   the one it just found. */
+.findbar {
+  position: fixed;
+  top: calc(var(--titlebar-height) + 8px);
+  right: 14px;
+  z-index: 20;
+  /* The arrow holds the first column and both rows share the second, so the
+     replace field lines up with the find field without measuring the arrow. */
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--chrome-border);
+  border-radius: 10px;
+  background: var(--surface-glass);
+  -webkit-backdrop-filter: var(--bar-blur);
+  backdrop-filter: var(--bar-blur);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
+  font-size: 12px;
+  color: var(--text);
+}
+
+.findbar[hidden] {
+  display: none;
+}
+
+@supports not (
+  (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+) {
+  .findbar {
+    background: var(--surface);
+  }
+}
+
+.findbar-row {
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.findbar-row[hidden] {
+  display: none;
+}
+
+.findbar-field {
+  width: 176px;
+  padding: 4px 8px;
+  border: 1px solid var(--control-border);
+  border-radius: 6px;
+  font: inherit;
+  color: var(--text);
+  background: var(--control);
+}
+
+.findbar-field:focus {
+  outline: 2px solid var(--accent-faint);
+  outline-offset: -1px;
+}
+
+.findbar-count {
+  min-width: 62px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.findbar.has-no-match .findbar-count {
+  color: var(--text-faint);
+}
+
+.findbar-step,
+.findbar-action,
+.findbar-done {
+  padding: 3px 8px;
+  border: 1px solid var(--control-border);
+  border-radius: 6px;
+  font: inherit;
+  color: var(--text);
+  background: var(--control);
+  cursor: default;
+}
+
+.findbar-step {
+  padding: 1px 8px 3px;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.findbar-disclosure {
+  /* Row 1 only: the arrow belongs to the find field, not to both rows. */
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: default;
+}
+
+/* The drawing turns, not the button, so the box it sits in cannot shift. */
+.findbar-disclosure svg {
+  transition: transform 120ms ease;
+}
+
+.findbar-disclosure.is-expanded svg {
+  transform: rotate(180deg);
+}
+
+.findbar-done {
+  font-weight: 500;
+}
+
+/* The matches themselves are decorations, never text. */
+.find-match {
+  border-radius: 2px;
+  background: var(--accent-faint);
+}
+
+.find-match.is-current {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* Status bar --------------------------------------------------------------- */
+
+.statusbar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  height: var(--statusbar-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 12px;
+  background: var(--bar-glass);
+  -webkit-backdrop-filter: var(--bar-blur);
+  backdrop-filter: var(--bar-blur);
+  /* No edge of any kind. The bar is told apart from the page by its tint and
+     by the blur of whatever is passing under it, and nothing else. */
+  font-size: 11px;
+  color: var(--text-muted);
+  user-select: none;
+}
+
+/* Without backdrop-filter a translucent bar would just be see-through text. */
+@supports not (
+  (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+) {
+  .titlebar,
+  .statusbar {
+    background: var(--background);
+  }
+}
+
+/* Hiding the bar has to give its height back, or the page keeps a dead strip
+   along the bottom. */
+:root[data-statusbar="hidden"] .statusbar {
+  display: none;
+}
+
+:root[data-statusbar="hidden"] .workspace {
+  padding-bottom: 0;
+}
+
+.statusbar-file {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.statusbar-words {
+  flex: none;
+}
+
+/* Settings ----------------------------------------------------------------- */
+
+/* A sheet, the way macOS shows settings inside a window: it drops from under
+   the title bar rather than floating in the middle like a web modal. */
+.settings-backdrop {
+  /* The timings live here and are read back by ui/settings.ts, so the sheet is
+     hidden at the same moment it finishes leaving. */
+  --sheet-open: 340ms;
+  --sheet-close: 240ms;
+  --sheet-ease-out: cubic-bezier(0.32, 0.72, 0, 1);
+  --sheet-ease-in: cubic-bezier(0.4, 0, 0.9, 0.55);
+
+  /* Below the title bar, and clipped, so the sheet is genuinely hidden behind
+     it rather than sliding over it. The title bar stays undimmed, as on macOS. */
+  position: fixed;
+  top: var(--titlebar-height);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  /* The scrim fades by its own colour, never by opacity on this element. An
+     ancestor with opacity below 1 becomes a backdrop root, which leaves the
+     sheet's backdrop-filter nothing to sample: the document would read straight
+     through the glass for as long as the fade ran. */
+  background-color: transparent;
+  transition: background-color var(--sheet-close) var(--sheet-ease-in);
+}
+
+.settings-backdrop.is-open {
+  background-color: var(--scrim);
+  transition: background-color var(--sheet-open) var(--sheet-ease-out);
+}
+
+.settings-backdrop[hidden] {
+  display: none;
+}
+
+/* Frosted, the way a macOS sheet sits on a material rather than on a flat
+   panel. The blur is of the document behind it, inside the window. */
+.settings-sheet {
+  width: min(370px, 100%);
+  /* The window can be short enough that the sheet does not fit. The backdrop
+     is clipped for the slide, so the sheet has to scroll inside itself or the
+     Done button becomes unreachable. */
+  max-height: 100%;
+  overflow-y: auto;
+  padding: 16px 20px 14px;
+  border: 1px solid var(--chrome-border);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  background: var(--surface-glass);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  backdrop-filter: blur(30px) saturate(180%);
+  box-shadow: 0 12px 34px rgb(0 0 0 / 22%);
+  transform: translateY(-100%);
+  transition: transform var(--sheet-close) var(--sheet-ease-in);
+}
+
+.settings-backdrop.is-open .settings-sheet {
+  transform: none;
+  transition: transform var(--sheet-open) var(--sheet-ease-out);
+}
+
+/* WebKitGTK did not support backdrop-filter until recently, and a translucent
+   panel with no blur is unreadable. Fall back to the solid surface. */
+@supports not (
+  (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+) {
+  .settings-sheet {
+    background: var(--surface);
+  }
+}
+
+/* Motion off means no slide and no wait: the durations drop to zero, which the
+   close timer reads too, so the sheet still disappears at once. */
+@media (prefers-reduced-motion: reduce) {
+  .settings-backdrop {
+    --sheet-open: 0ms;
+    --sheet-close: 0ms;
+  }
+
+  .settings-sheet,
+  .settings-backdrop.is-open .settings-sheet {
+    transform: none;
+  }
+}
+
+.settings-heading {
+  margin: 0 0 4px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Grouped rows in a rounded inset box, the current macOS settings layout. */
+.settings-group-title {
+  margin: 14px 2px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.settings-group {
+  border: 1px solid var(--control-border);
+  border-radius: 8px;
+  background: var(--group);
+  overflow: hidden;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 36px;
+  padding: 6px 11px;
+}
+
+/* A hairline between rows, and none at the edges of the box. */
+.settings-row + .settings-row {
+  border-top: 1px solid var(--group-separator);
+}
+
+.settings-label {
+  color: var(--text);
+}
+
+.settings-control {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.settings-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+/* The specimen, so the font and the size can be judged while the sheet covers
+   the document. */
+.settings-preview {
+  margin: 16px 0 0;
+  padding: 9px 11px;
+  border: 1px solid var(--control-border);
+  border-radius: 8px;
+  background: var(--group);
+  font-family: var(--font-body);
+  font-size: var(--font-size);
+  line-height: 1.35;
+  color: var(--text);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Controls ----------------------------------------------------------------- */
+
+.settings-sheet select {
+  appearance: none;
+  padding: 3px 22px 3px 8px;
+  border: 1px solid var(--control-border);
+  border-radius: 6px;
+  font: inherit;
+  color: var(--text);
+  background:
+    var(--chevron) no-repeat right 6px center,
+    var(--control);
+  box-shadow: 0 1px 1px rgb(0 0 0 / 5%);
+}
+
+.segmented {
+  display: flex;
+  gap: 1px;
+  padding: 2px;
+  border-radius: 7px;
+  background: var(--control-track);
+}
+
+.segment {
+  padding: 2px 9px;
+  border: none;
+  border-radius: 5px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--text);
+  background: transparent;
+  cursor: pointer;
+}
+
+.segment[aria-checked="true"] {
+  font-weight: 500;
+  background: var(--control);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 16%);
+}
+
+.settings-done {
+  padding: 4px 16px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font: inherit;
+  font-weight: 500;
+  color: var(--on-accent);
+  background: var(--accent);
+  cursor: pointer;
+}
+
+.settings-done:active {
+  filter: brightness(0.92);
+}
+
+.size-hint {
+  color: var(--text-muted);
+  line-height: 1;
+}
+
+.size-hint-small {
+  font-size: 11px;
+}
+
+.size-hint-large {
+  font-size: 15px;
+}
+
+.settings-sheet input[type="range"] {
+  appearance: none;
+  width: 104px;
+  height: 18px;
+  background: transparent;
+}
+
+.settings-sheet input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--control-track);
+}
+
+.settings-sheet input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  margin-top: -5.5px;
+  border-radius: 50%;
+  background: var(--knob);
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 28%),
+    0 0 0 0.5px rgb(0 0 0 / 16%);
+}
+
+/* A switch, not a tick box. */
+.switch {
+  appearance: none;
+  position: relative;
+  width: 36px;
+  height: 21px;
+  margin: 0;
+  border-radius: 11px;
+  background: var(--switch-off);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: var(--knob);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 28%);
+  transition: transform 0.15s ease;
+}
+
+.switch:checked {
+  background: var(--accent);
+}
+
+.switch:checked::after {
+  transform: translateX(15px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .switch,
+  .switch::after {
+    transition: none;
+  }
+}
+
+/* Editor content ----------------------------------------------------------- */
+
+.ProseMirror {
+  outline: none;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.ProseMirror > * + * {
+  margin-top: var(--block-gap);
+}
+
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3,
+.ProseMirror h4,
+.ProseMirror h5,
+.ProseMirror h6 {
+  margin: 1.4em 0 0;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.ProseMirror h1 {
+  font-size: 1.9em;
+}
+.ProseMirror h2 {
+  font-size: 1.55em;
+}
+.ProseMirror h3 {
+  font-size: 1.3em;
+}
+.ProseMirror h4 {
+  font-size: 1.12em;
+}
+.ProseMirror h5,
+.ProseMirror h6 {
+  font-size: 1em;
+  color: var(--text-muted);
+}
+
+.ProseMirror a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid var(--accent-faint);
+}
+
+.ProseMirror code {
+  padding: 0.1em 0.32em;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--code-inline);
+}
+
+.ProseMirror pre {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  line-height: 1.5;
+  background: var(--code-block);
+}
+
+.ProseMirror pre code {
+  padding: 0;
+  background: none;
+}
+
+/* Code blocks are CodeMirror ------------------------------------------------
+
+   The editor inside a code block is CodeMirror, so these rules dress it to
+   match the block it replaced. CodeMirror ships its own layout; only what
+   would look foreign in a document is overridden here. */
+
+.pm-codeblock {
+  position: relative;
+  border-radius: 6px;
+  background: var(--code-block);
+}
+
+.pm-codeblock .cm-editor {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  line-height: 1.5;
+  color: var(--text);
+  background: transparent;
+}
+
+/* The page already shows which block has the caret; a second focus ring inside
+   the text would be noise. */
+.pm-codeblock .cm-editor.cm-focused {
+  outline: none;
+}
+
+.pm-codeblock .cm-scroller {
+  font-family: inherit;
+  line-height: inherit;
+}
+
+.pm-codeblock .cm-content {
+  padding: 12px 0;
+  caret-color: var(--text);
+}
+
+.pm-codeblock .cm-line {
+  padding: 0 14px;
+}
+
+.pm-codeblock .cm-cursor,
+.pm-codeblock .cm-dropCursor {
+  border-left-color: var(--text);
+}
+
+.pm-codeblock .cm-selectionBackground,
+.pm-codeblock .cm-editor:not(.cm-focused) .cm-selectionBackground,
+.pm-codeblock .cm-editor.cm-focused .cm-selectionBackground {
+  background: var(--accent-faint);
+}
+
+/* The language of the fence, shown once in the corner so the colouring is not
+   the only clue about what the block is. */
+.pm-codeblock[data-language]:not([data-language=""])::before {
+  content: attr(data-language);
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-faint);
+  pointer-events: none;
+}
+
+/* Syntax colours. The names come from nodeviews/codeblock.ts; the values are
+   per theme, beside the rest of the palette. */
+.tok-keyword {
+  color: var(--tok-keyword);
+}
+
+.tok-string {
+  color: var(--tok-string);
+}
+
+.tok-comment {
+  color: var(--tok-comment);
+  font-style: italic;
+}
+
+.tok-literal {
+  color: var(--tok-literal);
+}
+
+.tok-function {
+  color: var(--tok-function);
+}
+
+.tok-type {
+  color: var(--tok-type);
+}
+
+.tok-property {
+  color: var(--tok-property);
+}
+
+.tok-punct {
+  color: var(--tok-punct);
+}
+
+.tok-tag {
+  color: var(--tok-tag);
+}
+
+.tok-invalid {
+  color: var(--tok-invalid);
+}
+
+/* Images -------------------------------------------------------------------
+
+   A picture that cannot be found says so, with its alt text, rather than
+   leaving a broken glyph or nothing at all in the middle of the page. */
+
+.pm-image {
+  display: inline-block;
+  max-width: 100%;
+  line-height: 0;
+  vertical-align: baseline;
+}
+
+.pm-image img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+.pm-image-fallback {
+  display: none;
+}
+
+/* While it loads, and when it never will, the image element itself is dropped
+   so the browser's own broken icon never appears. */
+.pm-image.is-loading img,
+.pm-image.is-broken img {
+  display: none;
+}
+
+.pm-image.is-loading::before,
+.pm-image.is-broken .pm-image-fallback {
+  display: inline-block;
+  padding: 3px 8px;
+  border: 1px dashed var(--chrome-border);
+  border-radius: 4px;
+  font-family: var(--font-ui);
+  font-size: 0.8em;
+  line-height: 1.4;
+  color: var(--text-faint);
+}
+
+.pm-image.is-loading::before {
+  content: "Loading image…";
+}
+
+.pm-image.is-broken .pm-image-fallback::before {
+  content: "Missing image: ";
+}
+
+.pm-image.ProseMirror-selectednode img {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Tables --------------------------------------------------------------------
+
+   The column widths are the browser's own: a pipe table carries no widths, and
+   the text column is narrow, so cells wrap rather than pushing the page wide. */
+
+/* No margin of its own: the gap above it comes from the rule that spaces every
+   block, and setting one here would be more specific and win. */
+.ProseMirror table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.94em;
+  line-height: 1.5;
+}
+
+.ProseMirror th,
+.ProseMirror td {
+  padding: 6px 10px;
+  border: 1px solid var(--rule);
+  /* Rows are rarely one line, so the text starts at the top of every cell. */
+  vertical-align: top;
+  text-align: left;
+}
+
+.ProseMirror th {
+  font-weight: 600;
+}
+
+/* An empty cell still has to be clickable and typeable. */
+.ProseMirror th:empty::after,
+.ProseMirror td:empty::after {
+  content: "";
+  display: inline-block;
+}
+
+.ProseMirror blockquote {
+  margin: 0;
+  padding-left: 1em;
+  border-left: 3px solid var(--quote-border);
+  color: var(--text-muted);
+}
+
+.ProseMirror ul,
+.ProseMirror ol {
+  padding-left: 1.5em;
+}
+
+.ProseMirror li > * + * {
+  margin-top: var(--block-gap);
+}
+
+/* A tight list hides the paragraph gaps, the way the Markdown reads. */
+.ProseMirror ul[data-tight] li > p,
+.ProseMirror ol[data-tight] li > p {
+  margin: 0;
+}
+
+.ProseMirror hr {
+  border: none;
+  border-top: 1px solid var(--rule);
+}
+
+.ProseMirror img {
+  max-width: 100%;
+  border-radius: 4px;
+}
+
+/* The syntax markers, shown only on the block holding the caret. They are
+   widget decorations, never text, so they must not be selectable. */
+.pm-marker {
+  color: var(--marker);
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  font-weight: 400;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* The placeholder and the marker on an empty block are drawn with CSS rather
+   than as widgets, because a contenteditable="false" element alone in a block
+   stops the browser from accepting typed text. */
+.ProseMirror .pm-placeholder::before {
+  content: attr(data-placeholder);
+  /* Floated with no height so the hint takes no space and the caret stays put. */
+  float: left;
+  height: 0;
+  color: var(--text-faint);
+  pointer-events: none;
+}
+
+.ProseMirror .pm-block-marker::before {
+  content: attr(data-marker);
+  color: var(--marker);
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  font-weight: 400;
+  pointer-events: none;
+}

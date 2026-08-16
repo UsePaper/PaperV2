@@ -1,0 +1,68 @@
+/* The light theme. A theme is one file of custom properties, nothing more. */
+
+:root {
+  /* The chrome is always the system font. Only the editor follows the font
+     setting, so choosing a serif for your prose does not restyle the app. */
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue",
+    Arial, sans-serif;
+  --font-body: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas,
+    monospace;
+  --font-size: 17px;
+  --line-height: 1.7;
+  --measure: 46rem;
+  --block-gap: 0.9em;
+  /* A fallback. ui/titlebar.ts measures the real band and overrides this; the
+     value here is what macOS reports today, so nothing shifts when it lands.
+     Note this is 32, not the widely quoted 28. */
+  --titlebar-height: 32px;
+  --statusbar-height: 24px;
+
+  --background: #fdfdfc;
+  --text: #1c1c1a;
+  --text-muted: #6b6b66;
+  --text-faint: #a8a8a2;
+
+  --chrome-border: #e3e3de;
+
+  /* The glass of the title bar and the status bar. */
+  /* Thin enough that the page shows through as a blur. Any more opaque and the
+     bar reads as a painted strip, because the tint is nearly the page colour. */
+  --bar-glass: rgb(253 253 252 / 55%);
+  --bar-blur: blur(30px) saturate(190%);
+
+  --surface: #ffffff;
+  --surface-glass: rgb(250 250 248 / 72%);
+  --scrim: rgb(0 0 0 / 10%);
+  --group: rgb(255 255 255 / 62%);
+  --group-separator: rgb(0 0 0 / 8%);
+  --control: #ffffff;
+  --control-border: #c9c9c3;
+  --control-track: #d8d8d2;
+  --switch-off: #d3d3cd;
+  --knob: #ffffff;
+  /* The popup button chevron, tinted per theme. */
+  --chevron: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="14" viewBox="0 0 10 14"><path d="M2 5.6 5 2.6l3 3M2 8.4l3 3 3-3" fill="none" stroke="%236b6b66" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+
+  --accent: #2f6f4f;
+  --accent-faint: #b9d6c6;
+  --on-accent: #ffffff;
+  --marker: #b0b0a8;
+  --rule: #dcdcd6;
+  --quote-border: #dcdcd6;
+  --code-inline: #efefea;
+  --code-block: #f4f4f1;
+
+  /* Syntax. Muted on purpose: a code block sits inside prose here, and a bright
+     palette would pull the eye off the sentence around it. */
+  --tok-keyword: #8a3d6b;
+  --tok-string: #2f6f4f;
+  --tok-comment: #8a8a82;
+  --tok-literal: #a05a2c;
+  --tok-function: #2b5f8a;
+  --tok-type: #7a5d1f;
+  --tok-property: #3a6a7a;
+  --tok-punct: #6b6b66;
+  --tok-tag: #8a3d3d;
+  --tok-invalid: #b3261e;
+}

@@ -1,0 +1,93 @@
+/* The dark theme. It only redefines the colours set in light.css. */
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --background: #1b1b19;
+    --text: #e6e6e1;
+    --text-muted: #96968f;
+    --text-faint: #63635d;
+
+    --chrome-border: #33332f;
+    --bar-glass: rgb(27 27 25 / 50%);
+    --bar-blur: blur(30px) saturate(190%);
+
+    --surface: #2b2b27;
+    --surface-glass: rgb(43 43 39 / 74%);
+    --scrim: rgb(0 0 0 / 26%);
+    --group: rgb(255 255 255 / 6%);
+    --group-separator: rgb(255 255 255 / 9%);
+    --control: #3a3a35;
+    --control-border: #4a4a44;
+    --control-track: #46463f;
+    --switch-off: #4a4a44;
+    --knob: #f2f2ed;
+    --chevron: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="14" viewBox="0 0 10 14"><path d="M2 5.6 5 2.6l3 3M2 8.4l3 3 3-3" fill="none" stroke="%2396968f" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+
+    --accent: #7fbf9b;
+    --accent-faint: #3c5a4b;
+    --on-accent: #10221a;
+    --marker: #5c5c56;
+    --rule: #3a3a35;
+    --quote-border: #3a3a35;
+    --code-inline: #2a2a26;
+    --code-block: #232320;
+
+    --tok-keyword: #d08fc0;
+    --tok-string: #7fbf9b;
+    --tok-comment: #7a7a72;
+    --tok-literal: #d9a066;
+    --tok-function: #7fb3e0;
+    --tok-type: #cbb072;
+    --tok-property: #86bccc;
+    --tok-punct: #96968f;
+    --tok-tag: #d99a9a;
+    --tok-invalid: #f2836f;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --background: #1b1b19;
+  --text: #e6e6e1;
+  --text-muted: #96968f;
+  --text-faint: #63635d;
+
+  --chrome-border: #33332f;
+  --bar-glass: rgb(27 27 25 / 50%);
+  --bar-blur: blur(30px) saturate(190%);
+
+  --surface: #2b2b27;
+  --surface-glass: rgb(43 43 39 / 74%);
+  --scrim: rgb(0 0 0 / 26%);
+  --group: rgb(255 255 255 / 6%);
+  --group-separator: rgb(255 255 255 / 9%);
+  --control: #3a3a35;
+  --control-border: #4a4a44;
+  --control-track: #46463f;
+  --switch-off: #4a4a44;
+  --knob: #f2f2ed;
+  --chevron: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="14" viewBox="0 0 10 14"><path d="M2 5.6 5 2.6l3 3M2 8.4l3 3 3-3" fill="none" stroke="%2396968f" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+
+  --accent: #7fbf9b;
+  --accent-faint: #3c5a4b;
+  --on-accent: #10221a;
+  --marker: #5c5c56;
+  --rule: #3a3a35;
+  --quote-border: #3a3a35;
+  --code-inline: #2a2a26;
+  --code-block: #232320;
+
+  --tok-keyword: #d08fc0;
+  --tok-string: #7fbf9b;
+  --tok-comment: #7a7a72;
+  --tok-literal: #d9a066;
+  --tok-function: #7fb3e0;
+  --tok-type: #cbb072;
+  --tok-property: #86bccc;
+  --tok-punct: #96968f;
+  --tok-tag: #d99a9a;
+  --tok-invalid: #f2836f;
+}

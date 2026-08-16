@@ -1,0 +1,19 @@
+import { defineConfig } from "vite";
+import process from "node:process";
+
+const host = process.env.TAURI_DEV_HOST;
+
+export default defineConfig(() => ({
+  // Do not let Vite clear the screen over the Rust errors.
+  clearScreen: false,
+  server: {
+    // Tauri expects this exact port and fails rather than moving.
+    port: 1420,
+    strictPort: true,
+    host: host || false,
+    hmr: host ? { protocol: "ws", host, port: 1421 } : undefined,
+    watch: {
+      ignored: ["**/src-tauri/**"],
+    },
+  },
+}));
