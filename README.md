@@ -1,5 +1,7 @@
 # PaperV2
 
+[![CI](https://github.com/UsePaper/PaperV2/actions/workflows/ci.yml/badge.svg)](https://github.com/UsePaper/PaperV2/actions/workflows/ci.yml)
+
 A minimal WYSIWYG Markdown editor for the desktop. One window, one file, one
 editing pane. You type Markdown, the syntax hides itself, and the formatted
 result stays in place. There is no preview pane.
