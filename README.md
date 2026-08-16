@@ -46,3 +46,14 @@ The Markdown text on disk is the source of truth; the ProseMirror document is a
 view of it. `tests/roundtrip` holds that line: every corpus file must serialize
 back to itself byte for byte. See `CLAUDE.md` for the rules that govern changes
 here.
+
+## Licence
+
+MIT. See [LICENSE](LICENSE).
+
+Bundled fonts keep their own licences, which sit beside them in
+`src/themes/fonts/`. All of them are the SIL Open Font License.
+
+## Releasing
+
+See [docs/RELEASING.md](docs/RELEASING.md).
