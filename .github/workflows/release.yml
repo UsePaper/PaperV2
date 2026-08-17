@@ -127,7 +127,16 @@ jobs:
           gh release upload "${{ github.ref_name }}" "$DMG" \
             --repo "${{ github.repository }}" --clobber
 
-          # tauri-action already uploaded the versioned name. Leaving it would
-          # put two identical disk images on the release, one of them unstapled.
-          gh release delete-asset "${{ github.ref_name }}" "$(basename "$BUILT")" \
-            --repo "${{ github.repository }}" --yes || true
+          # The release should offer one download and no puzzles. tauri-action
+          # uploads the versioned disk image, which is now a duplicate and an
+          # unstapled one, and an .app.tar.gz that only Tauri's updater can use
+          # and this application has no updater. Whatever else it left, the
+          # release ends up holding Paper.dmg and nothing else.
+          gh release view "${{ github.ref_name }}" --repo "${{ github.repository }}" \
+            --json assets --jq '.assets[].name' \
+            | { grep -vx 'Paper.dmg' || true; } \
+            | while read -r asset; do
+                echo "Removing $asset"
+                gh release delete-asset "${{ github.ref_name }}" "$asset" \
+                  --repo "${{ github.repository }}" --yes
+              done
