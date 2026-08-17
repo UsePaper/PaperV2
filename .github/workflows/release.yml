@@ -58,6 +58,7 @@ jobs:
           chmod 600 ~/private_keys/AuthKey.p8
 
       - uses: tauri-apps/tauri-action@v1
+        id: tauri
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Signing. tauri-action imports the certificate into a temporary
@@ -81,3 +82,37 @@ jobs:
           # Draft, so a bad build is never a published one.
           releaseDraft: true
           prerelease: false
+
+      # Tauri notarises the .app and staples it, then builds the .dmg around the
+      # result and only signs that. So the application is fine once it is out of
+      # the disk image, but the disk image is the part a person double clicks
+      # first, and without a ticket of its own it is refused with "Apple cannot
+      # check it for malicious software". Notarise the container too, and replace
+      # the asset tauri-action already uploaded with the stapled copy.
+      - name: Notarise and staple the disk image
+        if: env.APPLE_API_KEY != ''
+        env:
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          DMG=$(find src-tauri/target/universal-apple-darwin/release/bundle/dmg \
+                  -name "*.dmg" -print -quit)
+          echo "Notarising $DMG"
+
+          xcrun notarytool submit "$DMG" \
+            --key ~/private_keys/AuthKey.p8 \
+            --key-id "$APPLE_API_KEY" \
+            --issuer "$APPLE_API_ISSUER" \
+            --wait
+
+          xcrun stapler staple "$DMG"
+          xcrun stapler validate "$DMG"
+
+          # Proves the ticket is really attached, rather than trusting the exit
+          # code of the step above.
+          spctl --assess --type open --context context:primary-signature -vv "$DMG"
+
+          gh release upload "${{ github.ref_name }}" "$DMG" \
+            --repo "${{ github.repository }}" --clobber

@@ -103,14 +103,36 @@ publish.
 
 ## Checking a build before anyone downloads it
 
+**Check the disk image, not only the application.** Tauri notarises the `.app`
+and staples it, then builds the `.dmg` around the result and only signs that. An
+application that passes every check can still sit inside a container that macOS
+refuses to open, and the container is what gets double clicked first. The release
+workflow notarises and staples the `.dmg` afterwards for that reason; this is how
+to confirm it did.
+
+```bash
+xcrun stapler validate PaperV2_0.1.0_universal.dmg
+spctl --assess --type open --context context:primary-signature -vv PaperV2_0.1.0_universal.dmg
+```
+
+`accepted` and `source=Notarized Developer ID`. If it says *Unnotarized Developer
+ID*, the disk image was signed but never notarised, and a downloader gets "Apple
+cannot check it for malicious software".
+
+Then the application inside it:
+
 ```bash
 spctl --assess --type execute -vv PaperV2.app   # should say: accepted, Notarized Developer ID
 codesign -dv --verbose=4 PaperV2.app | grep -E "Authority|TeamIdentifier|Runtime"
 xcrun stapler validate PaperV2.app              # should say: worked
 ```
 
+Three `Authority` lines, ending at `Apple Root CA`. A missing middle line means
+the `.p12` went up without its intermediate.
+
 The surest test is a different Mac, or this one with the quarantine flag put
-back on, which is what a download gets:
+back on, which is what a download gets, and which is the only way the checks
+above resemble a real launch:
 
 ```bash
 xattr -w com.apple.quarantine "0081;00000000;Safari;" PaperV2.app
