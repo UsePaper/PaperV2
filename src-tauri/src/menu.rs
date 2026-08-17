@@ -21,6 +21,7 @@ pub fn build<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<(Menu<R>, Submenu<
             Some("About Paper"),
             Some(AboutMetadata::default()),
         )?)
+        .item(&MenuItemBuilder::with_id("check_for_updates", "Check for Updates…").build(app)?)
         .separator()
         .item(&settings)
         .separator()

@@ -2,12 +2,14 @@ import { Editor, type ViewMode } from "./editor/editor";
 import { classifyImageSrc, imageMimeType } from "./editor/nodeviews/image";
 import {
   StaleFileError,
+  checkForUpdate,
   confirmDialog,
   closeAllWindows,
   hasFileAccess,
   initialPath,
   messageDialog,
   newWindow,
+  openReleasesPage,
   onFileChanged,
   onOpenFile,
   onSettingsWritten,
@@ -437,10 +439,48 @@ function runCommand(id: string): void {
     case "settings":
       settingsPanel.toggle();
       break;
+    case "check_for_updates":
+      void checkForUpdates();
+      break;
     case "quit":
       void quit();
       break;
   }
+}
+
+/**
+ * The menu item, end to end. Nothing here runs on its own: the check happens
+ * because the user asked for it, and the answer is a dialog they opened.
+ */
+async function checkForUpdates(): Promise<void> {
+  const result = await checkForUpdate();
+
+  if (result.status === "available") {
+    const download = await confirmDialog(
+      "A new version is available",
+      `Paper ${result.latest} is available. You have ${result.current}.`,
+      "Download",
+      "Later",
+    );
+    if (download) await openReleasesPage();
+    return;
+  }
+
+  if (result.status === "current") {
+    await messageDialog(
+      "You are up to date",
+      `Paper ${result.current} is the latest version.`,
+      "info",
+    );
+    return;
+  }
+
+  // Offline, rate limited, or nothing published yet. None of that is worth a
+  // stack trace, and none of it means an update does or does not exist.
+  await messageDialog(
+    "Could not check for updates",
+    "The latest version could not be reached. Check your connection, or look at the releases page.",
+  );
 }
 
 /**

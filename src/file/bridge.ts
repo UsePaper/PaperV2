@@ -109,12 +109,42 @@ export async function confirmDialog(
   });
 }
 
-export async function messageDialog(title: string, message: string): Promise<void> {
+export async function messageDialog(
+  title: string,
+  message: string,
+  kind: "error" | "info" = "error",
+): Promise<void> {
   if (!isTauri()) {
     window.alert(`${title}\n\n${message}`);
     return;
   }
-  await invoke("message_dialog", { title, message });
+  await invoke("message_dialog", { title, message, kind });
+}
+
+export interface UpdateCheck {
+  status: "current" | "available" | "unknown";
+  current: string;
+  latest: string | null;
+}
+
+/**
+ * Asks GitHub for the latest release tag. The only network call the
+ * application makes, and only ever from the menu item. See exception 5 in
+ * CLAUDE.md before calling this from anywhere else.
+ */
+export async function checkForUpdate(): Promise<UpdateCheck> {
+  if (!isTauri()) {
+    return { status: "unknown", current: "0.0.0", latest: null };
+  }
+  return invoke<UpdateCheck>("check_for_update");
+}
+
+export async function openReleasesPage(): Promise<void> {
+  if (!isTauri()) {
+    window.open("https://github.com/UsePaper/PaperV2/releases/latest", "_blank");
+    return;
+  }
+  await invoke("open_releases_page");
 }
 
 /**

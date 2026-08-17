@@ -42,6 +42,8 @@ pub fn run() {
             commands::settings::read_settings,
             commands::settings::write_settings,
             commands::watch::watch_file,
+            commands::update::check_for_update,
+            commands::update::open_releases_page,
         ])
         .on_window_event(|window, event| {
             // A closed document leaves its watcher, its thread and its file

@@ -56,14 +56,21 @@ pub async fn confirm_dialog(
     receiver.recv().unwrap_or(false)
 }
 
+/// `kind` decides the icon. Most of these are failures, so anything unrecognised
+/// is treated as one; "the check found nothing" is the exception that has to ask
+/// for `info`, rather than wearing a warning badge for saying all is well.
 #[tauri::command]
-pub async fn message_dialog(app: AppHandle, title: String, message: String) {
+pub async fn message_dialog(app: AppHandle, title: String, message: String, kind: Option<String>) {
     let (sender, receiver) = mpsc::channel();
+    let kind = match kind.as_deref() {
+        Some("info") => MessageDialogKind::Info,
+        _ => MessageDialogKind::Error,
+    };
     let mut builder = app
         .dialog()
         .message(message)
         .title(title)
-        .kind(MessageDialogKind::Error)
+        .kind(kind)
         .buttons(MessageDialogButtons::Ok);
     if let Some(window) = app.get_webview_window("main") {
         builder = builder.parent(&window);

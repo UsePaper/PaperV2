@@ -60,11 +60,12 @@ Do not add these. Do not suggest them. If a task needs one of them, stop and ask
 - Outline panel or table of contents panel
 - Math (KaTeX), diagrams (Mermaid), or charts
 - Footnotes, definition lists, or admonitions
-- Collaborative editing or any network feature
+- Collaborative editing or any network feature, other than the update check in
+  exception 5
 - Telemetry, analytics, or auto update
 - A theme gallery, or a settings dialog that grows past one screen
 
-**Four exceptions:**
+**Five exceptions:**
 
 1. The source mode toggle stays. It shows the raw Markdown in a plain text area. It is
    a debug tool and a user escape hatch.
@@ -100,6 +101,18 @@ Do not add these. Do not suggest them. If a task needs one of them, stop and ask
    typography, the chrome or what may be written to the file, and that is the line. A
    mode that reflows the page, or hides the bars, or centres the caret, is focus mode
    under another name and is still out.
+5. **Check for Updates…** in the application menu asks GitHub for the latest release
+   tag and says whether this build is behind it. It is the one network call the
+   application makes, and the rule it bends is worth restating so it is not widened
+   later. The objection to auto update was never the checking, it was the phoning
+   home: a check on launch turns the release server's logs into an audience counter,
+   which is telemetry whoever is holding it, and it makes the editor fail or hang on
+   a network the user never asked it to use. Nothing happens here unless the user
+   picks the menu item, so there is no background traffic, nothing to disable, and
+   the failure of a check is a sentence in a dialog the user opened. It does not
+   download, install, or restart anything: it reports, and offers to open the
+   releases page. **An update check that runs by itself, on a timer or at launch, is
+   the thing that was ruled out, and adding one is not a small change to this.**
 
 ---
 
