@@ -18,49 +18,74 @@ bookmarks and a different design.
 
 The account already has *Apple Development* and *Apple Distribution*
 certificates. Neither of them works here. Development is for running on your own
-machines, Distribution is for the App Store. Direct distribution needs a third:
+machines, Distribution is for the App Store. Direct distribution needs a third.
 
-1. Go to Certificates, Identifiers & Profiles → Certificates → **+**
-2. Choose **Developer ID Application**
-3. Follow the certificate signing request steps, download, and double click to
-   install it
+Everything below keeps its files in `~/.private/paperv2`, outside the repository.
+A private key inside a working tree is one `git add .` away from being published.
 
-Check it landed:
-
-```bash
-security find-identity -v -p codesigning | grep "Developer ID Application"
-```
-
-Then export it for CI, from Keychain Access → right click the certificate →
-Export → `.p12`, with a password:
+Make the key and the certificate request. This replaces the Keychain Access
+*Request a Certificate From a Certificate Authority* dance, and puts the private
+key in a file we can hand to CI rather than inside a keychain we would have to
+export it from:
 
 ```bash
-base64 -i Certificates.p12 | pbcopy   # this is APPLE_CERTIFICATE
+asc certificates csr generate --common-name "Developer ID Application: Hasan Rafi" --organization "Hasan Rafi" --key-out ~/.private/paperv2/dev-id.key --csr-out ~/.private/paperv2/dev-id.csr
 ```
+
+**The certificate itself has to be issued in the web portal.** `asc certificates
+create` is the obvious route and it does not work here: the App Store Connect API
+refuses with *"This operation can only be performed by the Account Holder"*, and
+that is a property of the endpoint, not of the key's role. No API key of any role
+can issue a Developer ID certificate. So:
+
+1. Certificates, Identifiers & Profiles → Certificates → **+**
+2. Choose **Developer ID Application**, and the **G2 Sub-CA** profile
+3. Upload `~/.private/paperv2/dev-id.csr`
+4. Download the `.cer` into `~/.private/paperv2`
+
+Keep `dev-id.key`. It is the half Apple never sees, and a certificate without it
+is worthless; losing it means starting again from a new request.
 
 ## One time: the notarisation key
 
-App Store Connect → Users and Access → Integrations → Team Keys → **+**, with
-the *Developer* role. Download the `.p8`. It can only be downloaded once.
+A key made for this, rather than a personal one, so it can be revoked without
+taking anything else down:
 
 ```bash
-base64 -i AuthKey_XXXXXXXXXX.p8 | pbcopy   # this is APPLE_API_KEY_BASE64
+asc web api-keys create --name "PaperV2 release" --role DEVELOPER --output-dir ~/.private/paperv2
 ```
+
+This needs an Apple web session (`asc web auth login --apple-id ...`), because it
+is another Account Holder or Admin operation. It writes `AuthKey_<KEYID>.p8` at
+mode 600 and never prints the contents.
 
 ## The secrets
 
-Settings → Secrets and variables → Actions, on the repository:
+`scripts/release-secrets.sh` builds the `.p12` from the certificate and the key,
+reads the signing identity off the certificate rather than trusting it to be
+typed correctly, and sets all six. The `.p12` password is generated, piped to
+GitHub, and discarded: nothing reads it again.
+
+```bash
+./scripts/release-secrets.sh
+```
 
 | Secret | What it is |
 |---|---|
 | `APPLE_CERTIFICATE` | the `.p12`, base64 encoded |
-| `APPLE_CERTIFICATE_PASSWORD` | the password used when exporting it |
+| `APPLE_CERTIFICATE_PASSWORD` | the generated password |
 | `APPLE_SIGNING_IDENTITY` | the full name, `Developer ID Application: Hasan Rafi (TEAMID)` |
 | `APPLE_API_KEY_BASE64` | the `.p8`, base64 encoded |
 | `APPLE_API_KEY` | the key id, the ten characters in the `.p8` filename |
-| `APPLE_API_ISSUER` | the issuer id, a uuid on the same App Store Connect page |
+| `APPLE_API_ISSUER` | the issuer id, from `asc auth issuer-id` |
 
 Nothing else is needed. `GITHUB_TOKEN` is provided by Actions.
+
+The one part of that script worth knowing about if you ever redo it by hand is
+`openssl pkcs12 -export -legacy`. OpenSSL 3 encrypts with AES-256 by default and
+the `security import` that runs on the macOS runner cannot read it, so a `.p12`
+made without the flag fails partway through a release with a MAC verification
+error that says nothing about the cause.
 
 ## Cutting a release
 
