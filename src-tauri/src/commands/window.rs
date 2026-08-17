@@ -56,7 +56,7 @@ pub async fn new_window_for<R: Runtime>(
     }
 
     let mut builder = WebviewWindowBuilder::new(&app, &label, WebviewUrl::default())
-        .title("PaperV2")
+        .title("Paper")
         .inner_size(900.0, 680.0)
         .min_inner_size(480.0, 360.0)
         .decorations(true);

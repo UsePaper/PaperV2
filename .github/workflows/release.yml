@@ -74,7 +74,7 @@ jobs:
         with:
           args: --target universal-apple-darwin
           tagName: ${{ github.ref_name }}
-          releaseName: PaperV2 ${{ github.ref_name }}
+          releaseName: Paper ${{ github.ref_name }}
           releaseBody: |
             A minimal WYSIWYG Markdown editor for the desktop.
 
@@ -83,13 +83,21 @@ jobs:
           releaseDraft: true
           prerelease: false
 
+      # Two things happen here, both after tauri-action rather than inside it.
+      #
       # Tauri notarises the .app and staples it, then builds the .dmg around the
       # result and only signs that. So the application is fine once it is out of
       # the disk image, but the disk image is the part a person double clicks
       # first, and without a ticket of its own it is refused with "Apple cannot
-      # check it for malicious software". Notarise the container too, and replace
-      # the asset tauri-action already uploaded with the stapled copy.
-      - name: Notarise and staple the disk image
+      # check it for malicious software". So the container is notarised too.
+      #
+      # And the bundle is named Paper_<version>_universal.dmg, which cannot be
+      # linked to: a download button on the website would break on every
+      # release. Renaming it to Paper.dmg makes
+      # /releases/latest/download/Paper.dmg a permanent address. The version is
+      # not lost by dropping it from the file name; it is in the bundle, and the
+      # About panel reads it from there.
+      - name: Notarise, staple and publish the disk image
         if: env.APPLE_API_KEY != ''
         env:
           APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
@@ -97,9 +105,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          DMG=$(find src-tauri/target/universal-apple-darwin/release/bundle/dmg \
-                  -name "*.dmg" -print -quit)
-          echo "Notarising $DMG"
+          BUILT=$(find src-tauri/target/universal-apple-darwin/release/bundle/dmg \
+                    -name "*.dmg" -print -quit)
+          DMG="$(dirname "$BUILT")/Paper.dmg"
+          mv "$BUILT" "$DMG"
+          echo "Notarising $DMG (built as $(basename "$BUILT"))"
 
           xcrun notarytool submit "$DMG" \
             --key ~/private_keys/AuthKey.p8 \
@@ -116,3 +126,8 @@ jobs:
 
           gh release upload "${{ github.ref_name }}" "$DMG" \
             --repo "${{ github.repository }}" --clobber
+
+          # tauri-action already uploaded the versioned name. Leaving it would
+          # put two identical disk images on the release, one of them unstapled.
+          gh release delete-asset "${{ github.ref_name }}" "$(basename "$BUILT")" \
+            --repo "${{ github.repository }}" --yes || true

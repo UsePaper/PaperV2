@@ -111,8 +111,8 @@ workflow notarises and staples the `.dmg` afterwards for that reason; this is ho
 to confirm it did.
 
 ```bash
-xcrun stapler validate PaperV2_0.1.0_universal.dmg
-spctl --assess --type open --context context:primary-signature -vv PaperV2_0.1.0_universal.dmg
+xcrun stapler validate Paper.dmg
+spctl --assess --type open --context context:primary-signature -vv Paper.dmg
 ```
 
 `accepted` and `source=Notarized Developer ID`. If it says *Unnotarized Developer
@@ -122,9 +122,9 @@ cannot check it for malicious software".
 Then the application inside it:
 
 ```bash
-spctl --assess --type execute -vv PaperV2.app   # should say: accepted, Notarized Developer ID
-codesign -dv --verbose=4 PaperV2.app | grep -E "Authority|TeamIdentifier|Runtime"
-xcrun stapler validate PaperV2.app              # should say: worked
+spctl --assess --type execute -vv Paper.app   # should say: accepted, Notarized Developer ID
+codesign -dv --verbose=4 Paper.app | grep -E "Authority|TeamIdentifier|Runtime"
+xcrun stapler validate Paper.app              # should say: worked
 ```
 
 Three `Authority` lines, ending at `Apple Root CA`. A missing middle line means
@@ -135,7 +135,7 @@ back on, which is what a download gets, and which is the only way the checks
 above resemble a real launch:
 
 ```bash
-xattr -w com.apple.quarantine "0081;00000000;Safari;" PaperV2.app
+xattr -w com.apple.quarantine "0081;00000000;Safari;" Paper.app
 ```
 
 ## What is not here

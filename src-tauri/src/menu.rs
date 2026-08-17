@@ -15,10 +15,10 @@ pub fn build<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<(Menu<R>, Submenu<
         .accelerator("CmdOrCtrl+,")
         .build(app)?;
 
-    let app_menu = SubmenuBuilder::new(app, "PaperV2")
+    let app_menu = SubmenuBuilder::new(app, "Paper")
         .item(&PredefinedMenuItem::about(
             app,
-            Some("About PaperV2"),
+            Some("About Paper"),
             Some(AboutMetadata::default()),
         )?)
         .separator()
@@ -33,7 +33,7 @@ pub fn build<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<(Menu<R>, Submenu<
         // Not the predefined quit item: that ends the process at once, which
         // would throw away unsaved work without asking. This one asks first.
         .item(
-            &MenuItemBuilder::with_id("quit", "Quit PaperV2")
+            &MenuItemBuilder::with_id("quit", "Quit Paper")
                 .accelerator("CmdOrCtrl+Q")
                 .build(app)?,
         )

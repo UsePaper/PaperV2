@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "PaperV2",
+  "productName": "Paper",
   "version": "0.1.0",
   "identifier": "com.rafi.paperv2",
   "build": {
@@ -13,7 +13,7 @@
     "withGlobalTauri": false,
     "windows": [
       {
-        "title": "PaperV2",
+        "title": "Paper",
         "width": 900,
         "height": 680,
         "minWidth": 480,

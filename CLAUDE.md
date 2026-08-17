@@ -7,8 +7,16 @@ change code.
 
 ## 1. What This Project Is
 
-PaperV2 is a minimal WYSIWYG Markdown editor for the desktop. It is a small alternative
+Paper is a minimal WYSIWYG Markdown editor for the desktop. It is a small alternative
 to Typora.
+
+**The product is called Paper. The repository is called PaperV2.** The second version
+earned the plain name and the repository kept the working one, because renaming a
+published repository breaks every link to it and the name is only ever seen by people
+who are already reading the source. So `productName` is `Paper`, and the crate, the
+package and the bundle identifier stay `paperv2`. Do not "fix" one to match the other:
+the identifier in particular decides where the settings file lives, and changing it
+abandons the user's settings and re-registers the file associations from nothing.
 
 **One file per window. One editing pane.**
 
@@ -25,7 +33,8 @@ settings file, and nothing else.
 
 | Item | Value |
 |---|---|
-| Product name | PaperV2 |
+| Product name | **Paper**. The name on the bundle, the menus and the window. |
+| Repository | PaperV2 |
 | Package name | `paperv2` |
 | Bundle identifier | `com.rafi.paperv2` |
 | Local path | `~/Projects/Rust/PaperV2` |
