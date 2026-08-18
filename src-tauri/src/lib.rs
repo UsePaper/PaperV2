@@ -8,6 +8,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .manage(commands::window::PendingPaths::default())
         .manage(commands::watch::FileWatchers::default())
+        .manage(commands::window::OpenDocuments::default())
         .setup(|app| {
             let (menu, window_menu) = menu::build(app.handle())?;
             app.set_menu(menu)?;
@@ -32,6 +33,8 @@ pub fn run() {
             commands::window::new_window,
             commands::window::close_all_windows,
             commands::window::initial_path,
+            commands::window::set_window_path,
+            commands::window::raise_window_for,
             commands::fs::read_file,
             commands::fs::write_file_atomic,
             commands::fs::read_image,
@@ -50,6 +53,9 @@ pub fn run() {
             // handle behind unless they are released here.
             if let tauri::WindowEvent::Destroyed = event {
                 commands::watch::forget(window.app_handle(), window.label());
+                // Its claim on a file goes with it, or that document could
+                // never be opened again.
+                commands::window::forget_window(window.app_handle(), window.label());
             }
         })
         .build(tauri::generate_context!())

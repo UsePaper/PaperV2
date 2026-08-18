@@ -18,8 +18,10 @@ import {
   openDialog,
   readFile,
   readImageBytes,
+  raiseWindowFor,
   readSettings,
   saveAsDialog,
+  setWindowPath,
   watchFile,
   writeFileAtomic,
   writeSettings,
@@ -214,6 +216,10 @@ async function openFile(): Promise<void> {
   const path = await openDialog();
   if (!path) return;
 
+  // Already open somewhere? Then that window is the answer, even if this one
+  // is blank and could have taken the file.
+  if (await raiseWindowFor(path)) return;
+
   // An untouched window is a blank sheet, so the file lands here. Anything
   // else keeps its document and the file gets a window of its own.
   if (!isBlankDocument(getFileState(), currentMarkdown())) {
@@ -231,6 +237,8 @@ async function openFile(): Promise<void> {
 async function openPath(path: string): Promise<void> {
   // Finder can deliver the same path twice, once stashed and once announced.
   if (getFileState().path === path) return;
+
+  if (await raiseWindowFor(path)) return;
 
   if (!isBlankDocument(getFileState(), currentMarkdown())) {
     await newWindow(path);
@@ -311,6 +319,12 @@ let documentPath: string | null = null;
 onFileStateChange((state) => {
   if (state.path === documentPath) return;
   documentPath = state.path;
+
+  // Rust keeps the file-to-window map, because no window can see what the
+  // others are showing.
+  void setWindowPath(state.path).catch(() => {
+    // Losing this costs the raise-instead-of-reopen, not the document.
+  });
 
   void watchFile(state.path).catch(() => {
     // Losing the watch costs the reload, not the document. The mtime check on

@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Mutex;
 
@@ -17,6 +18,21 @@ pub const OPEN_FILE_EVENT: &str = "open-file";
 /// waits here under the new window's label until that window asks for it.
 #[derive(Default)]
 pub struct PendingPaths(pub Mutex<HashMap<String, String>>);
+
+/// Which file each window is showing, so a document opens once.
+///
+/// The frontend owns the document; this is only enough of a copy to answer
+/// "is this file already open, and where", which the frontend cannot answer
+/// for windows other than its own.
+#[derive(Default)]
+pub struct OpenDocuments(pub Mutex<HashMap<String, PathBuf>>);
+
+/// Compares files, not the text naming them. `/tmp/a.md` and
+/// `/private/tmp/a.md` are the same document on macOS, and Finder hands over
+/// the resolved form while the user's own dialog hands over the short one.
+fn same_file(path: &Path) -> PathBuf {
+    std::fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf())
+}
 
 static NEXT_WINDOW: AtomicU32 = AtomicU32::new(1);
 
@@ -44,6 +60,17 @@ pub async fn new_window_for<R: Runtime>(
     app: AppHandle<R>,
     path: Option<String>,
 ) -> Result<String, String> {
+    // Asking for a window on a file that already has one raises it instead.
+    // The check belongs here rather than at each call site, because every route
+    // to a second window for the same document runs through this function.
+    if let Some(path) = path.as_deref() {
+        if let Some(window) = window_showing(&app, Path::new(path)) {
+            let _ = window.unminimize();
+            let _ = window.set_focus();
+            return Ok(window.label().to_string());
+        }
+    }
+
     let index = NEXT_WINDOW.fetch_add(1, Ordering::Relaxed);
     let label = format!("doc-{index}");
 
@@ -81,6 +108,58 @@ pub async fn new_window_for<R: Runtime>(
     Ok(window.label().to_string())
 }
 
+/// Records what a window is showing, or that it is showing nothing. Called by
+/// the frontend whenever the document's path changes: opened, saved somewhere
+/// new, or lost from under it.
+#[tauri::command]
+pub fn set_window_path(app: AppHandle, window: WebviewWindow, path: Option<String>) {
+    if let Ok(mut open) = app.state::<OpenDocuments>().0.lock() {
+        match path {
+            Some(path) => open.insert(window.label().to_string(), same_file(Path::new(&path))),
+            None => open.remove(window.label()),
+        };
+    }
+}
+
+/// Releases a closed window's claim on its file, so reopening it later finds
+/// no window and opens one.
+pub fn forget_window<R: Runtime>(app: &AppHandle<R>, label: &str) {
+    if let Ok(mut open) = app.state::<OpenDocuments>().0.lock() {
+        open.remove(label);
+    }
+}
+
+/// The window already showing this file, if one is.
+fn window_showing<R: Runtime>(app: &AppHandle<R>, path: &Path) -> Option<WebviewWindow<R>> {
+    let wanted = same_file(path);
+    let label = app
+        .state::<OpenDocuments>()
+        .0
+        .lock()
+        .ok()?
+        .iter()
+        .find(|(_, held)| *held == &wanted)
+        .map(|(label, _)| label.clone())?;
+
+    app.get_webview_window(&label)
+}
+
+/// Raises the window already showing this file, and says whether it found one.
+///
+/// A blank window loads a chosen file into itself rather than opening another
+/// window, and that path never reaches `new_window`, so it asks here first.
+#[tauri::command]
+pub fn raise_window_for(app: AppHandle, path: String) -> bool {
+    match window_showing(&app, Path::new(&path)) {
+        Some(window) => {
+            let _ = window.unminimize();
+            let _ = window.set_focus();
+            true
+        }
+        None => false,
+    }
+}
+
 /// The file this window was opened for, if any. Taken once, so a reload starts
 /// the window empty rather than reopening the file over the user's edits.
 #[tauri::command]
@@ -110,6 +189,15 @@ pub fn close_all_windows(app: AppHandle) {
 /// showing, so arriving twice is harmless.
 pub fn open_paths<R: Runtime>(app: &AppHandle<R>, paths: Vec<String>) {
     for path in paths {
+        // A document lives in one window. Asking for one that is already open
+        // raises that window instead of opening the file a second time, which
+        // is what a double click in Finder means by "open".
+        if let Some(window) = window_showing(app, Path::new(&path)) {
+            let _ = window.unminimize();
+            let _ = window.set_focus();
+            continue;
+        }
+
         // Prefer the window in front; at launch nothing is focused yet, so fall
         // back to whichever window exists.
         let target = focused(app).or_else(|| app.webview_windows().into_values().next());

@@ -33,6 +33,28 @@ const SETTINGS_EVENT = "settings-written";
 
 export const hasFileAccess = (): boolean => isTauri();
 
+/**
+ * Registers a listener for this window alone.
+ *
+ * `listen` from the event module registers with the target `Any`, and Tauri
+ * treats that as a wildcard that skips the target filter altogether:
+ *
+ *     *target == EventTarget::Any || filter(target)
+ *
+ * So a listener registered that way hears every event, including one that
+ * `emit_to` addressed to a single window. The menu, the open request and the
+ * file watcher are all addressed to one window, and a global listener made
+ * every window act on them: one press of Save wrote every open document, and
+ * one double click in Finder opened the file in two windows at once.
+ */
+async function listenHere<T>(
+  event: string,
+  handler: (payload: T) => void,
+): Promise<() => void> {
+  const { getCurrentWebviewWindow } = await import("@tauri-apps/api/webviewWindow");
+  return getCurrentWebviewWindow().listen<T>(event, (received) => handler(received.payload));
+}
+
 export async function readFile(path: string): Promise<FileContents> {
   if (!isTauri()) return stubRead(path);
   return invoke<FileContents>("read_file", { path });
@@ -184,7 +206,26 @@ export async function onOpenFile(
   handler: (path: string) => void,
 ): Promise<() => void> {
   if (!isTauri()) return () => {};
-  return listen<string>("open-file", (event) => handler(event.payload));
+  return listenHere<string>("open-file", handler);
+}
+
+/**
+ * Tells Rust which file this window is showing, so that opening the same file
+ * again raises this window instead of opening it a second time. Null while the
+ * document has no path of its own.
+ */
+export async function setWindowPath(path: string | null): Promise<void> {
+  if (!isTauri()) return;
+  await invoke("set_window_path", { path });
+}
+
+/**
+ * Raises the window already showing this file, if there is one, and reports
+ * whether it did. A document belongs in one window.
+ */
+export async function raiseWindowFor(path: string): Promise<boolean> {
+  if (!isTauri()) return false;
+  return invoke<boolean>("raise_window_for", { path });
 }
 
 /** The file this window was opened for. Taken once, so a reload starts empty. */
@@ -214,7 +255,7 @@ export async function onFileChanged(
   handler: (change: FileChanged) => void,
 ): Promise<() => void> {
   if (!isTauri()) return () => {};
-  return listen<FileChanged>("file-changed", (event) => handler(event.payload));
+  return listenHere<FileChanged>("file-changed", handler);
 }
 
 /**
@@ -289,7 +330,7 @@ export async function onMenuCommand(
   handler: (id: string) => void,
 ): Promise<() => void> {
   if (!isTauri()) return () => {};
-  return listen<string>("menu", (event) => handler(event.payload));
+  return listenHere<string>("menu", handler);
 }
 
 /* The browser only fallbacks. They keep `pnpm dev` usable for editor work. */
