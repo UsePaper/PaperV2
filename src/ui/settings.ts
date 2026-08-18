@@ -1,4 +1,5 @@
 import type { ViewMode } from "../editor/editor";
+import { confirmDialog } from "../file/bridge";
 import { MODE_LABEL } from "./titlebar";
 import {
   BODY_FONTS,
@@ -8,8 +9,9 @@ import {
   MEASURE_PRESETS,
   fontStack,
   leadingPreset,
-  getSettings,
   measurePreset,
+  onSettingsChange,
+  resetSettings,
   setSettings,
   type Settings,
   type Theme,
@@ -107,9 +109,25 @@ export function mountSettings(root: HTMLElement): SettingsPanel {
   done.textContent = "Done";
   done.addEventListener("click", () => panel.close());
 
+  // Asked about first. The settings are cheap to set again, but not to
+  // remember, and there is no undo for a sheet.
+  const reset = document.createElement("button");
+  reset.type = "button";
+  reset.className = "settings-reset";
+  reset.textContent = "Reset";
+  reset.addEventListener("click", () => {
+    void confirmDialog(
+      "Reset all settings?",
+      "Every setting goes back to its default. Your documents are not touched.",
+      "Reset",
+    ).then((confirmed) => {
+      if (confirmed) resetSettings();
+    });
+  });
+
   const footer = document.createElement("div");
   footer.className = "settings-footer";
-  footer.append(done);
+  footer.append(reset, done);
 
   sheet.append(
     heading,
@@ -126,6 +144,13 @@ export function mountSettings(root: HTMLElement): SettingsPanel {
   root.addEventListener("click", (event) => {
     if (event.target === root) panel.close();
   });
+
+  // The rows follow the settings rather than being filled in when the sheet
+  // opens. Reset changes all eight at once, and another window can change any
+  // of them while this sheet is open; either way the controls would otherwise
+  // sit there showing what used to be true. Setting a control's value does not
+  // fire its change event, so this cannot loop.
+  onSettingsChange(show);
 
   function show(settings: Readonly<Settings>): void {
     theme.set(settings.theme);
@@ -165,7 +190,6 @@ export function mountSettings(root: HTMLElement): SettingsPanel {
       window.clearTimeout(closeTimer);
 
       previousFocus = document.activeElement as HTMLElement | null;
-      show(getSettings());
       root.hidden = false;
       // Force a reflow between leaving `display: none` and the class, or the
       // transition has no start value to move from.

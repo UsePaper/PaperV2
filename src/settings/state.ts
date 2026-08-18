@@ -245,6 +245,17 @@ export function setSettings(next: Partial<Settings>): void {
   for (const listener of listeners) listener(current);
 }
 
+/**
+ * Puts every setting back to its default, in one change rather than eight, so
+ * the listeners run once and one write reaches the file.
+ *
+ * A whole object, not a merge: a partial reset would leave behind whichever
+ * settings were added after this line was written.
+ */
+export function resetSettings(): void {
+  setSettings({ ...DEFAULT_SETTINGS });
+}
+
 /** Writes the settings onto the document. Themes are CSS variables only. */
 export function applySettings(settings: Readonly<Settings>): void {
   const root = document.documentElement;

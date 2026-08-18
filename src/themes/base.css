@@ -472,7 +472,10 @@ body.source-mode .source {
 
 .settings-footer {
   display: flex;
-  justify-content: flex-end;
+  /* Reset at one end, Done at the other. The destructive one is never under
+     the finger that is reaching for the safe one. */
+  justify-content: space-between;
+  align-items: center;
   margin-top: 14px;
 }
 
@@ -545,6 +548,27 @@ body.source-mode .source {
 }
 
 .settings-done:active {
+  filter: brightness(0.92);
+}
+
+/* Plain text, not a second filled button: it is the rarer of the two and
+   should not compete with Done for the eye. */
+.settings-reset {
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font: inherit;
+  color: var(--text-muted);
+  background: none;
+  cursor: pointer;
+}
+
+.settings-reset:hover {
+  color: var(--text);
+  background: var(--group);
+}
+
+.settings-reset:active {
   filter: brightness(0.92);
 }
 

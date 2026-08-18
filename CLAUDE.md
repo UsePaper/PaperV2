@@ -91,6 +91,9 @@ Do not add these. Do not suggest them. If a task needs one of them, stop and ask
    because reading mode has no caret and nothing to type into, so a blank window in
    it offers nothing to read and no way to begin. Presentation keeps the keyboard and
    needs no such exception, and a file opened in reading mode is what was asked for.
+   The footer carries a **Reset**, which is an action and not a ninth setting: it puts
+   the eight back to their defaults after asking, because a sheet has no undo and the
+   settings are cheap to set again but not to remember.
 3. Pipe tables are in, and are the one construct here that is not CommonMark. They
    were held back for version 2 and brought forward because the alternative was
    worse: with the table rule off, a table parses as an ordinary paragraph of several

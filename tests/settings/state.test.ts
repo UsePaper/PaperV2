@@ -9,9 +9,13 @@ import {
   MEASURE_RANGE,
   DEFAULT_MODES,
   fontStack,
+  resetSettings,
+  setSettings,
+  getSettings,
   startingMode,
   leadingPreset,
   measurePreset,
+  onSettingsChange,
   parseSettings,
 } from "../../src/settings/state";
 
@@ -115,6 +119,42 @@ describe("parseSettings, the default mode", () => {
 
   it("opens in editing unless told otherwise", () => {
     expect(DEFAULT_SETTINGS.defaultMode).toBe("editing");
+  });
+});
+
+describe("resetSettings", () => {
+  it("puts every setting back, not just the ones it knows about", () => {
+    setSettings({
+      theme: "dark",
+      font: "lora",
+      fontSize: 22,
+      measure: 44,
+      leading: 2,
+      spellcheck: false,
+      statusbar: false,
+      defaultMode: "reading",
+    });
+    expect(getSettings()).not.toEqual(DEFAULT_SETTINGS);
+
+    resetSettings();
+
+    // Compared whole. A field added later and forgotten here would show up as
+    // a failure rather than as a setting the reset quietly skips.
+    expect(getSettings()).toEqual(DEFAULT_SETTINGS);
+  });
+
+  it("tells the listeners once", () => {
+    setSettings({ theme: "dark", fontSize: 22 });
+    let calls = 0;
+    const stop = onSettingsChange(() => {
+      calls += 1;
+    });
+    // Subscribing reports the current value straight away.
+    calls = 0;
+
+    resetSettings();
+    expect(calls).toBe(1);
+    stop();
   });
 });
 
