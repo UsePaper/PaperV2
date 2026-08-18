@@ -121,6 +121,20 @@ export const LEADING_RANGE = { min: 1.2, max: 2.4 } as const;
  */
 export const DEFAULT_MODES: readonly ViewMode[] = ["editing", "presentation", "reading"];
 
+/**
+ * The mode a window opens in, which is the preference except in one case.
+ *
+ * Reading is a mode for a document that exists: no caret, nothing to type
+ * into, only text to select. A new window with no file offered nothing to read
+ * and no way to begin writing, which is a window that appears broken, so an
+ * empty one opens in editing however the preference reads. Presentation keeps
+ * the keyboard and needs no such exception, and a file opened in reading mode
+ * is exactly what was asked for.
+ */
+export function startingMode(preference: ViewMode, hasFile: boolean): ViewMode {
+  return !hasFile && preference === "reading" ? "editing" : preference;
+}
+
 export const DEFAULT_SETTINGS: Settings = {
   theme: "system",
   font: "system",

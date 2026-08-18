@@ -40,6 +40,7 @@ import {
   onSettingsChange,
   parseSettings,
   setSettings,
+  startingMode,
   type Settings,
 } from "./settings/state";
 import { mountFindbar } from "./ui/findbar";
@@ -155,12 +156,6 @@ async function loadSettings(): Promise<void> {
     // A corrupt or unreadable file falls back to the defaults.
   }
   settingsLoaded = true;
-
-  // Only here, and only once. The mode belongs to the window, so a later
-  // change to the setting, or another window writing it, leaves this one where
-  // the reader put it. Doing this in the settings listener instead would flip
-  // every open window the moment somebody touched the row.
-  setMode(getSettings().defaultMode);
 }
 
 /**
@@ -577,12 +572,25 @@ if (!hasFileAccess()) {
 applySettings(getSettings());
 statusbar.update(editor.wordCount());
 editor.focus();
-void loadSettings();
+void start();
 
-// A window opened for a file loads it as soon as it is ready.
-void initialPath().then((path) => {
-  if (path) void loadPath(path);
-});
+/**
+ * The opening sequence, in this order for a reason.
+ *
+ * The mode a window opens in is decided once, here, and never from the
+ * settings listener: that listener also runs when another window writes the
+ * file, and it would drag every open window into a choice made somewhere else.
+ * Deciding it needs both the preference and whether this window opened for a
+ * file, so both are awaited first. It is decided before the file is read, so
+ * the document does not appear in one mode and change to another in front of
+ * the reader.
+ */
+async function start(): Promise<void> {
+  await loadSettings();
+  const path = await initialPath();
+  setMode(startingMode(getSettings().defaultMode, path !== null));
+  if (path) await loadPath(path);
+}
 
 // Finder opening a file while this window is already running.
 void onOpenFile((path) => void openPath(path));

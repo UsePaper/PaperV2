@@ -9,6 +9,7 @@ import {
   MEASURE_RANGE,
   DEFAULT_MODES,
   fontStack,
+  startingMode,
   leadingPreset,
   measurePreset,
   parseSettings,
@@ -114,6 +115,31 @@ describe("parseSettings, the default mode", () => {
 
   it("opens in editing unless told otherwise", () => {
     expect(DEFAULT_SETTINGS.defaultMode).toBe("editing");
+  });
+});
+
+describe("startingMode", () => {
+  it("uses the preference when the window opened for a file", () => {
+    for (const mode of DEFAULT_MODES) {
+      expect(startingMode(mode, true)).toBe(mode);
+    }
+  });
+
+  it("opens an empty window in editing however reading is preferred", () => {
+    // Reading has no caret and nothing to type into, so a blank window in it
+    // offers nothing to read and no way to start.
+    expect(startingMode("reading", false)).toBe("editing");
+  });
+
+  it("leaves the other two alone on an empty window", () => {
+    // Presentation keeps the keyboard, so an empty window in it is still a
+    // window you can write in. Only reading is a dead end.
+    expect(startingMode("presentation", false)).toBe("presentation");
+    expect(startingMode("editing", false)).toBe("editing");
+  });
+
+  it("still opens a file in reading when that is the preference", () => {
+    expect(startingMode("reading", true)).toBe("reading");
   });
 });
 
