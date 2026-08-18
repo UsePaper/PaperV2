@@ -6,6 +6,8 @@
  * options, so a new entry needs a reason.
  */
 
+import type { ViewMode } from "../editor/editor";
+
 export type Theme = "system" | "light" | "dark";
 
 export interface Settings {
@@ -21,6 +23,12 @@ export interface Settings {
   spellcheck: boolean;
   /** Whether the bar along the bottom of the window is shown. */
   statusbar: boolean;
+  /**
+   * The mode a window opens in. It does not disturb windows already open: a
+   * setting shared by every window that reached into all of them would pull a
+   * reader out of what they were doing to answer a choice made somewhere else.
+   */
+  defaultMode: ViewMode;
 }
 
 /**
@@ -105,6 +113,14 @@ export const LEADING_PRESETS = [
 
 export const LEADING_RANGE = { min: 1.2, max: 2.4 } as const;
 
+/**
+ * The modes a window can open in, in the order the title bar steps through
+ * them. `MODE_ORDER` in `ui/titlebar.ts` is the same list; this one carries the
+ * labels so the sheet and the button never disagree about what a mode is
+ * called.
+ */
+export const DEFAULT_MODES: readonly ViewMode[] = ["editing", "presentation", "reading"];
+
 export const DEFAULT_SETTINGS: Settings = {
   theme: "system",
   font: "system",
@@ -113,6 +129,7 @@ export const DEFAULT_SETTINGS: Settings = {
   leading: 1.7,
   spellcheck: true,
   statusbar: true,
+  defaultMode: "editing",
 };
 
 function clamp(value: number, min: number, max: number): number {
@@ -160,7 +177,11 @@ export function parseSettings(raw: unknown): Settings {
   const statusbar =
     typeof input.statusbar === "boolean" ? input.statusbar : DEFAULT_SETTINGS.statusbar;
 
-  return { theme, font, fontSize, measure, leading, spellcheck, statusbar };
+  const defaultMode = DEFAULT_MODES.includes(input.defaultMode as ViewMode)
+    ? (input.defaultMode as ViewMode)
+    : DEFAULT_SETTINGS.defaultMode;
+
+  return { theme, font, fontSize, measure, leading, spellcheck, statusbar, defaultMode };
 }
 
 /** The named width closest to a stored number. */

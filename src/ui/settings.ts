@@ -1,5 +1,8 @@
+import type { ViewMode } from "../editor/editor";
+import { MODE_LABEL } from "./titlebar";
 import {
   BODY_FONTS,
+  DEFAULT_MODES,
   FONT_SIZE_RANGE,
   LEADING_PRESETS,
   MEASURE_PRESETS,
@@ -81,6 +84,14 @@ export function mountSettings(root: HTMLElement): SettingsPanel {
     setSettings({ statusbar: value }),
   );
 
+  // Named "Opens in" rather than "Default mode" because the difference that
+  // matters is when it takes effect: the next window, not this one.
+  const opensIn = segmented<ViewMode>(
+    "Opens in",
+    DEFAULT_MODES.map((value) => ({ value, label: MODE_LABEL[value] })),
+    (value) => setSettings({ defaultMode: value }),
+  );
+
   const spellcheck = switchRow("Spellcheck", (value) =>
     setSettings({ spellcheck: value }),
   );
@@ -105,7 +116,7 @@ export function mountSettings(root: HTMLElement): SettingsPanel {
     groupTitle("Appearance"),
     group(theme.row, font.row, size.row, width.row, leading.row, statusbar.row),
     groupTitle("Editing"),
-    group(spellcheck.row),
+    group(opensIn.row, spellcheck.row),
     preview,
     footer,
   );
@@ -123,6 +134,7 @@ export function mountSettings(root: HTMLElement): SettingsPanel {
     width.set(measurePreset(settings.measure).id);
     leading.set(leadingPreset(settings.leading).id);
     statusbar.set(settings.statusbar);
+    opensIn.set(settings.defaultMode);
     spellcheck.set(settings.spellcheck);
   }
 

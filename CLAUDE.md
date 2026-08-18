@@ -69,19 +69,24 @@ Do not add these. Do not suggest them. If a task needs one of them, stop and ask
 
 1. The source mode toggle stays. It shows the raw Markdown in a plain text area. It is
    a debug tool and a user escape hatch.
-2. The settings sheet stays, at its current size: theme, font, text size, line width,
-   line height, status bar, spellcheck. Seven settings in two groups, no tabs, no
-   search. An eighth needs a reason. Line height earned its place because the size of
-   the type, the width of the column and the space between the lines are the three
-   things that decide how a page reads, and the first two were already here; a fixed
-   1.7 is generous for prose and cramped for nothing, which is a choice being made on
-   the writer's behalf. It is offered as three named heights for the same reason the
-   width is: nobody wants to pick 1.62. The status bar earned its place because the bar
-   is the only chrome
-   over the text that the user cannot otherwise dismiss, and an editor this plain
-   should be able to show nothing but the page. Its specimen line is not a setting; it
-   is there because the sheet covers the document, so the font and the size cannot be
-   judged any other way.
+2. The settings sheet stays, at its current size: theme, font, text size, line width, line
+   height, status bar, opens in, spellcheck. Eight settings in two groups, no tabs, no
+   search. A ninth needs a reason. Line height earned its place because the size of the
+   type, the width of the column and the space between the lines are the three things that
+   decide how a page reads, and the first two were already here; a fixed 1.7 is generous
+   for prose and cramped for nothing, which is a choice being made on the writer's behalf.
+   It is offered as three named heights for the same reason the width is: nobody wants to
+   pick 1.62. The status bar earned its place because the bar is the only chrome over the
+   text that the user cannot otherwise dismiss, and an editor this plain should be able to
+   show nothing but the page. Its specimen line is not a setting; it is there because the
+   sheet covers the document, so the font and the size cannot be judged any other way.
+   **Opens in** earned its place because the mode was the one preference the application
+   could not keep: it belongs to a window, and every window started in editing, so anyone
+   who reads or presents more than they type set it again on every launch and every new
+   document. It decides what a window opens in and nothing more. It deliberately does not
+   reach into windows already open, because the settings file is shared by all of them and
+   a row that pulled a reader out of what they were doing to answer a choice made in
+   another window would be worse than the papercut it fixes.
 3. Pipe tables are in, and are the one construct here that is not CommonMark. They
    were held back for version 2 and brought forward because the alternative was
    worse: with the table rule off, a table parses as an ordinary paragraph of several

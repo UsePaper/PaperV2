@@ -16,7 +16,7 @@ export interface TitlebarOptions {
 }
 
 /** What each mode is called, and what pressing the button moves on to. */
-const MODE_LABEL: Readonly<Record<ViewMode, string>> = {
+export const MODE_LABEL: Readonly<Record<ViewMode, string>> = {
   editing: "Editing",
   presentation: "Presentation",
   reading: "Reading",

@@ -155,6 +155,12 @@ async function loadSettings(): Promise<void> {
     // A corrupt or unreadable file falls back to the defaults.
   }
   settingsLoaded = true;
+
+  // Only here, and only once. The mode belongs to the window, so a later
+  // change to the setting, or another window writing it, leaves this one where
+  // the reader put it. Doing this in the settings listener instead would flip
+  // every open window the moment somebody touched the row.
+  setMode(getSettings().defaultMode);
 }
 
 /**

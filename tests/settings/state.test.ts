@@ -7,6 +7,7 @@ import {
   LEADING_RANGE,
   MEASURE_PRESETS,
   MEASURE_RANGE,
+  DEFAULT_MODES,
   fontStack,
   leadingPreset,
   measurePreset,
@@ -34,6 +35,7 @@ describe("parseSettings", () => {
         leading: 1.45,
         spellcheck: false,
         statusbar: false,
+        defaultMode: "presentation",
       }),
     ).toEqual({
       theme: "dark",
@@ -43,6 +45,7 @@ describe("parseSettings", () => {
       leading: 1.45,
       spellcheck: false,
       statusbar: false,
+      defaultMode: "presentation",
     });
   });
 
@@ -80,6 +83,37 @@ describe("parseSettings", () => {
 
   it("keeps a line height the user chose", () => {
     expect(parseSettings({ leading: 1.45 }).leading).toBe(1.45);
+  });
+});
+
+describe("parseSettings, the default mode", () => {
+  it("keeps each of the three modes", () => {
+    for (const mode of DEFAULT_MODES) {
+      expect(parseSettings({ defaultMode: mode }).defaultMode).toBe(mode);
+    }
+  });
+
+  it("falls back for a mode that does not exist", () => {
+    // The likely causes are a hand edited file and a mode removed by a later
+    // build, and neither should leave a window with nothing to open in.
+    expect(parseSettings({ defaultMode: "focus" }).defaultMode).toBe(
+      DEFAULT_SETTINGS.defaultMode,
+    );
+    expect(parseSettings({ defaultMode: 2 }).defaultMode).toBe(
+      DEFAULT_SETTINGS.defaultMode,
+    );
+    expect(parseSettings({ defaultMode: null }).defaultMode).toBe(
+      DEFAULT_SETTINGS.defaultMode,
+    );
+  });
+
+  it("supplies it for a file written before the setting existed", () => {
+    const older = { theme: "dark", font: "lora", fontSize: 18 };
+    expect(parseSettings(older).defaultMode).toBe(DEFAULT_SETTINGS.defaultMode);
+  });
+
+  it("opens in editing unless told otherwise", () => {
+    expect(DEFAULT_SETTINGS.defaultMode).toBe("editing");
   });
 });
 
