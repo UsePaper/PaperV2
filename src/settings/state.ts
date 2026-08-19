@@ -23,21 +23,16 @@ export interface Settings {
   spellcheck: boolean;
   /** Whether the bar along the bottom of the window is shown. */
   statusbar: boolean;
-  /**
-   * The mode a window opens in. It does not disturb windows already open: a
-   * setting shared by every window that reached into all of them would pull a
-   * reader out of what they were doing to answer a choice made somewhere else.
-   */
+  /** The mode a new window opens in. Windows already open are left alone. */
   defaultMode: ViewMode;
 }
 
 /**
  * The body fonts on offer, with the stack each one resolves to.
  *
- * The first four come with the application, so a document looks the same
- * wherever it is opened. The list used to carry New York, Georgia, Avenir and
- * Helvetica as well; none of them exist on Linux, where every one of them fell
- * back to the same face and the setting quietly did nothing.
+ * Every one of them is bundled or is the system's own. The list used to name
+ * faces like Georgia and Avenir, which do not exist on Linux: they all fell
+ * back to the same font and the setting quietly did nothing.
  */
 export const BODY_FONTS: ReadonlyArray<{ id: string; label: string; stack: string }> = [
   {
@@ -86,37 +81,13 @@ export const BODY_FONTS: ReadonlyArray<{ id: string; label: string; stack: strin
 export const FONT_SIZE_RANGE = { min: 13, max: 24 } as const;
 
 /**
- * Line width is offered as three named widths, not a number. A writer picks a
- * comfortable measure by eye; the exact character count is not a decision
- * anyone wants to make, and `rem` is a unit from the stylesheet, not from
- * writing. The stored value stays a number so an old file still parses.
+ * Named widths, not a number: nobody picks 62 characters by eye, and the stored
+ * value stays a number so an old file still parses.
  *
- * These are `ch`, and a `ch` is the width of a zero, not of an average letter,
- * so the number here is not the number of characters on the line. Given a
- * window wide enough to render them in full, the three measure to roughly 64
- * to 80, 78 to 97, and 95 to 117 characters in the bundled faces at 17px, and
- * want about 620 to 720, 725 to 850, and 850 to 1000 points of window to reach
- * that width. In the 900 the application opens at, Narrow and Medium fit in
- * every face, with 140 to 190 and 75 to 135 points either side; Wide fits in
- * one of the five, and is the setting for a window someone has widened.
- *
- * Medium is the default and the one that was tuned by eye. It is a little
- * narrower than it looks: the same column used to be written as 76, back when
- * the measure counted the padding inside itself, so the number changed while
- * the width it describes did not.
- *
- * They are wide on purpose: the older 44/58/76 was set to the 45 to 75
- * characters that typography recommends for a printed page, and read as a thin
- * ribbon down the middle of a desktop window.
- *
- * The number is the text, not the column: `--page-gutter` is added around it in
- * `base.css` rather than taken out of it, so a setting is the width it claims
- * and the space either side of the page does not change with it.
- *
- * The spread within each column is the fonts disagreeing about the width of a
- * zero: Source Serif fits 49 characters where Newsreader fits 59 at the same
- * setting. Moving off `ch` would fix that and change what every stored number
- * means, which is a bigger change than a retune.
+ * A `ch` is the width of a zero, not of an average letter, so these are not
+ * character counts, and the same setting runs about a fifth wider in Lora than
+ * in Source Serif. The number is the text: `--page-gutter` is added around it
+ * in `base.css` rather than taken out of it, so a setting is the width it says.
  */
 export const MEASURE_PRESETS = [
   { id: "narrow", label: "Narrow", chars: 58 },
@@ -128,12 +99,7 @@ export const MEASURE_PRESETS = [
 // and two of the three settings would come out the same width.
 export const MEASURE_RANGE = { min: 40, max: 120 } as const;
 
-/**
- * Line height, offered the same way and for the same reason: nobody wants to
- * choose 1.62. It is the third of the three things that decide how a page of
- * text reads, after the size of the type and the width of the column, and the
- * one that changes most between reading a page and writing one.
- */
+/** Named for the same reason as the widths: nobody wants to choose 1.62. */
 export const LEADING_PRESETS = [
   { id: "tight", label: "Tight", height: 1.45 },
   { id: "normal", label: "Normal", height: 1.7 },
@@ -142,23 +108,12 @@ export const LEADING_PRESETS = [
 
 export const LEADING_RANGE = { min: 1.2, max: 2.4 } as const;
 
-/**
- * The modes a window can open in, in the order the title bar steps through
- * them. `MODE_ORDER` in `ui/titlebar.ts` is the same list; this one carries the
- * labels so the sheet and the button never disagree about what a mode is
- * called.
- */
+/** The same list as `MODE_ORDER`, carrying the labels the sheet shows. */
 export const DEFAULT_MODES: readonly ViewMode[] = ["editing", "presentation", "reading"];
 
 /**
- * The mode a window opens in, which is the preference except in one case.
- *
- * Reading is a mode for a document that exists: no caret, nothing to type
- * into, only text to select. A new window with no file offered nothing to read
- * and no way to begin writing, which is a window that appears broken, so an
- * empty one opens in editing however the preference reads. Presentation keeps
- * the keyboard and needs no such exception, and a file opened in reading mode
- * is exactly what was asked for.
+ * Reading has no caret and nothing to type into, so an empty window in it
+ * offers nothing to read and no way to begin. Only that case is overridden.
  */
 export function startingMode(preference: ViewMode, hasFile: boolean): ViewMode {
   return !hasFile && preference === "reading" ? "editing" : preference;
@@ -275,11 +230,8 @@ export function setSettings(next: Partial<Settings>): void {
 }
 
 /**
- * Puts every setting back to its default, in one change rather than eight, so
- * the listeners run once and one write reaches the file.
- *
- * A whole object, not a merge: a partial reset would leave behind whichever
- * settings were added after this line was written.
+ * One change rather than eight, so the listeners run once. A whole object
+ * rather than a merge, so a setting added later is not quietly left behind.
  */
 export function resetSettings(): void {
   setSettings({ ...DEFAULT_SETTINGS });

@@ -11,12 +11,8 @@
   --font-size: 17px;
   --line-height: 1.7;
   --measure: 46rem;
-  /* The space held either side of the text, whatever the line width is set to.
-     It sits outside the measure, so the column is as wide as it says it is and
-     this is added around it rather than eaten out of it. Without that, a wide
-     setting ran the text to the window edge with nothing but this to stop it,
-     while a narrow one left a third of the window empty: the breathing room
-     was a side effect of centring rather than a decision. */
+  /* Held either side of the text at every line width. Added around the measure
+     rather than taken out of it, so a width setting is the width it says. */
   --page-gutter: 48px;
   --block-gap: 0.9em;
   /* A fallback. ui/titlebar.ts measures the real band and overrides this; the

@@ -1,20 +1,15 @@
-/* The fonts that come with the application.
+/* The seven faces that come with the application, so the writing surface is
+ * the same wherever it runs. The font setting used to name faces the system was
+ * expected to have, which is true on macOS and false on Linux, where every
+ * serif choice fell back to the same font and the setting quietly did nothing.
  *
- * The rest of the list in `src/settings/state.ts` names fonts the system is
- * expected to have, which is true on macOS and false almost everywhere else:
- * on Linux the serif choices all fall back to the same face and the setting
- * quietly does nothing. These four are here so that the writing surface is the
- * same wherever the application runs.
+ * Each is a variable font, one file per slant, except iA Writer Quattro, which
+ * is published as separate weights. `font-display: block` because a page of
+ * text reflowing a moment after it appears is worse than one that arrives
+ * whole.
  *
- * Each is a variable font in one file per slant, except iA Writer Quattro,
- * which is published as separate weights. `font-display: block` because a
- * page of text reflowing a moment after it appears is worse than a page that
- * arrives whole.
- *
- * All four are under the SIL Open Font License, and JetBrains Mono with them.
- * The licences sit beside the files in `fonts/`, which is what that licence
- * asks for.
- */
+ * All seven are under the SIL Open Font License, whose one obligation is that
+ * the licence ships with the font: they sit beside the files in `fonts/`. */
 
 @font-face {
   font-family: "Literata";

@@ -19,17 +19,13 @@ pub const OPEN_FILE_EVENT: &str = "open-file";
 #[derive(Default)]
 pub struct PendingPaths(pub Mutex<HashMap<String, String>>);
 
-/// Which file each window is showing, so a document opens once.
-///
-/// The frontend owns the document; this is only enough of a copy to answer
-/// "is this file already open, and where", which the frontend cannot answer
-/// for windows other than its own.
+/// Which file each window is showing. No window can see what the others hold,
+/// so the answer to "is this already open, and where" has to live out here.
 #[derive(Default)]
 pub struct OpenDocuments(pub Mutex<HashMap<String, PathBuf>>);
 
-/// Compares files, not the text naming them. `/tmp/a.md` and
-/// `/private/tmp/a.md` are the same document on macOS, and Finder hands over
-/// the resolved form while the user's own dialog hands over the short one.
+/// Compares files, not the text naming them: Finder says `/private/tmp/a.md`
+/// where the open dialog says `/tmp/a.md`, and they are the same document.
 fn same_file(path: &Path) -> PathBuf {
     std::fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf())
 }
@@ -60,9 +56,8 @@ pub async fn new_window_for<R: Runtime>(
     app: AppHandle<R>,
     path: Option<String>,
 ) -> Result<String, String> {
-    // Asking for a window on a file that already has one raises it instead.
-    // The check belongs here rather than at each call site, because every route
-    // to a second window for the same document runs through this function.
+    // Here rather than at each call site, because every route to a second
+    // window for the same document runs through this function.
     if let Some(path) = path.as_deref() {
         if let Some(window) = window_showing(&app, Path::new(path)) {
             let _ = window.unminimize();
@@ -189,9 +184,7 @@ pub fn close_all_windows(app: AppHandle) {
 /// showing, so arriving twice is harmless.
 pub fn open_paths<R: Runtime>(app: &AppHandle<R>, paths: Vec<String>) {
     for path in paths {
-        // A document lives in one window. Asking for one that is already open
-        // raises that window instead of opening the file a second time, which
-        // is what a double click in Finder means by "open".
+        // A document lives in one window: opening it again raises that one.
         if let Some(window) = window_showing(app, Path::new(&path)) {
             let _ = window.unminimize();
             let _ = window.set_focus();

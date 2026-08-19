@@ -27,11 +27,9 @@ export interface SettingsPanel {
 const PREVIEW_TEXT = "The quick brown fox jumps over the lazy dog.";
 
 /**
- * A sheet of grouped rows, the way macOS lays settings out.
- *
- * Five of the seven settings change how text looks, and the sheet covers the
- * document while it is open, so it carries its own specimen line. Without it
- * you would be choosing a font and a size blind.
+ * A sheet of grouped rows, the way macOS lays settings out. It covers the
+ * document, and most of the rows change how text looks, so it carries a
+ * specimen line: without one you would be choosing a font blind.
  *
  * Keep this short. See CLAUDE.md section 1.
  */

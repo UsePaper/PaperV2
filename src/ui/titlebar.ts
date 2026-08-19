@@ -29,11 +29,9 @@ export function nextMode(mode: ViewMode): ViewMode {
 }
 
 /**
- * The window keeps its native decorations, so this is the document name drawn
- * into the transparent title bar area, and the one control the chrome carries.
- * The window buttons, the corners and the shadow all come from the system.
- *
- * On macOS the traffic lights overlay the top left of the content, so the bar
+ * The document name drawn into the transparent title bar area, and the one
+ * control the chrome carries. The buttons, corners and shadow are the
+ * system's. On macOS the traffic lights overlay the content, so the bar
  * reserves room for them.
  */
 export function mountTitlebar(

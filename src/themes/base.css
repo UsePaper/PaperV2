@@ -117,9 +117,9 @@ body.mode-reading .pm-placeholder::before {
 
 .editor,
 .source {
-  /* The measure is the text, the gutter is around it. Adding the gutter to the
-     limit keeps the column the width it was asked for, and keeps the space
-     either side the same at every setting. */
+  /* The measure is the text; the gutter goes around it. Note this only holds
+     the line once the window clips the column: while it fits, centring decides
+     the margin and the gutter cancels out of it. */
   max-width: calc(var(--measure) + 2 * var(--page-gutter));
   margin: 0 auto;
   padding: 48px var(--page-gutter) 40vh;

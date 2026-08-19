@@ -36,16 +36,10 @@ export const hasFileAccess = (): boolean => isTauri();
 /**
  * Registers a listener for this window alone.
  *
- * `listen` from the event module registers with the target `Any`, and Tauri
- * treats that as a wildcard that skips the target filter altogether:
- *
- *     *target == EventTarget::Any || filter(target)
- *
- * So a listener registered that way hears every event, including one that
- * `emit_to` addressed to a single window. The menu, the open request and the
- * file watcher are all addressed to one window, and a global listener made
- * every window act on them: one press of Save wrote every open document, and
- * one double click in Finder opened the file in two windows at once.
+ * Plain `listen` registers the target `Any`, which Tauri treats as a wildcard
+ * that skips the target filter, so `emit_to` cannot exclude it and every
+ * window hears everything. That made one press of Save write every open
+ * document. Anything addressed to a single window must come through here.
  */
 async function listenHere<T>(
   event: string,
@@ -209,11 +203,7 @@ export async function onOpenFile(
   return listenHere<string>("open-file", handler);
 }
 
-/**
- * Tells Rust which file this window is showing, so that opening the same file
- * again raises this window instead of opening it a second time. Null while the
- * document has no path of its own.
- */
+/** Lets Rust raise this window when the same file is opened again. */
 export async function setWindowPath(path: string | null): Promise<void> {
   if (!isTauri()) return;
   await invoke("set_window_path", { path });
@@ -259,10 +249,9 @@ export async function onFileChanged(
 }
 
 /**
- * Names the window itself, which is not the same as the name drawn in the bar.
- * The title bar is ours and hidden from the system, but the Window menu, the
- * app switcher and Mission Control all read the window's own title, and a
- * window per document leaves them indistinguishable without it.
+ * The window's own name, not the one drawn in our title bar. The Window menu,
+ * the app switcher and Mission Control read this, and a window per document
+ * leaves all three unreadable without it.
  */
 export async function setWindowTitle(title: string): Promise<void> {
   if (!isTauri()) {

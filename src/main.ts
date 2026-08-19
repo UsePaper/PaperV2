@@ -589,15 +589,11 @@ editor.focus();
 void start();
 
 /**
- * The opening sequence, in this order for a reason.
- *
- * The mode a window opens in is decided once, here, and never from the
- * settings listener: that listener also runs when another window writes the
- * file, and it would drag every open window into a choice made somewhere else.
- * Deciding it needs both the preference and whether this window opened for a
- * file, so both are awaited first. It is decided before the file is read, so
- * the document does not appear in one mode and change to another in front of
- * the reader.
+ * The order matters. The mode needs both the preference and whether this
+ * window opened for a file, so both are awaited first, and it is set before
+ * the file is read so the document does not change mode in front of anyone.
+ * Never from the settings listener: that also fires when another window
+ * writes, which would drag every open window along with it.
  */
 async function start(): Promise<void> {
   await loadSettings();

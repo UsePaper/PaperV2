@@ -52,11 +52,9 @@ fn parse_version(version: &str) -> Option<(u64, u64, u64)> {
     Some((major, minor, patch))
 }
 
-/// Through curl rather than an HTTP crate. reqwest was the obvious choice and
-/// cost 2.6MB of binary, a half again on top of everything else the editor is,
-/// for one request made when somebody picks a menu item. curl is part of macOS,
-/// ships with Windows, and is on any Linux that has a package manager. Where it
-/// is somehow absent the check reports that it could not reach the release,
+/// Through curl rather than an HTTP crate: reqwest measured 2.6MB of binary,
+/// half again on top of the whole editor, for one request behind a menu item.
+/// Where curl is absent the check reports that it could not reach the release,
 /// which is what it would say about a missing network anyway.
 ///
 /// Blocking, so it is called from a thread that is allowed to block.
