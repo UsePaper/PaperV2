@@ -90,14 +90,43 @@ export const FONT_SIZE_RANGE = { min: 13, max: 24 } as const;
  * comfortable measure by eye; the exact character count is not a decision
  * anyone wants to make, and `rem` is a unit from the stylesheet, not from
  * writing. The stored value stays a number so an old file still parses.
+ *
+ * These are `ch`, and a `ch` is the width of a zero, not of an average letter,
+ * so the number here is not the number of characters on the line. Given a
+ * window wide enough to render them in full, the three measure to roughly 64
+ * to 80, 78 to 97, and 95 to 117 characters in the bundled faces at 17px, and
+ * want about 620 to 720, 725 to 850, and 850 to 1000 points of window to reach
+ * that width. In the 900 the application opens at, Narrow and Medium fit in
+ * every face, with 140 to 190 and 75 to 135 points either side; Wide fits in
+ * one of the five, and is the setting for a window someone has widened.
+ *
+ * Medium is the default and the one that was tuned by eye. It is a little
+ * narrower than it looks: the same column used to be written as 76, back when
+ * the measure counted the padding inside itself, so the number changed while
+ * the width it describes did not.
+ *
+ * They are wide on purpose: the older 44/58/76 was set to the 45 to 75
+ * characters that typography recommends for a printed page, and read as a thin
+ * ribbon down the middle of a desktop window.
+ *
+ * The number is the text, not the column: `--page-gutter` is added around it in
+ * `base.css` rather than taken out of it, so a setting is the width it claims
+ * and the space either side of the page does not change with it.
+ *
+ * The spread within each column is the fonts disagreeing about the width of a
+ * zero: Source Serif fits 49 characters where Newsreader fits 59 at the same
+ * setting. Moving off `ch` would fix that and change what every stored number
+ * means, which is a bigger change than a retune.
  */
 export const MEASURE_PRESETS = [
-  { id: "narrow", label: "Narrow", chars: 44 },
-  { id: "medium", label: "Medium", chars: 58 },
-  { id: "wide", label: "Wide", chars: 76 },
+  { id: "narrow", label: "Narrow", chars: 58 },
+  { id: "medium", label: "Medium", chars: 70 },
+  { id: "wide", label: "Wide", chars: 84 },
 ] as const;
 
-export const MEASURE_RANGE = { min: 40, max: 80 } as const;
+// The clamp has to clear the widest preset, or parsing would quietly squash it
+// and two of the three settings would come out the same width.
+export const MEASURE_RANGE = { min: 40, max: 120 } as const;
 
 /**
  * Line height, offered the same way and for the same reason: nobody wants to
@@ -139,7 +168,7 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: "system",
   font: "system",
   fontSize: 17,
-  measure: 58,
+  measure: 70,
   leading: 1.7,
   spellcheck: true,
   statusbar: true,
