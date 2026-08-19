@@ -140,10 +140,18 @@ async function trackNativeChrome(root: HTMLElement): Promise<void> {
     const metrics = await titlebarMetrics();
     if (!metrics) return;
 
-    document.documentElement.style.setProperty(
-      "--titlebar-height",
-      `${metrics.height}px`,
-    );
+    // Full screen takes the system title bar away, so AppKit reports a band of
+    // nothing. Ours is still there, still holding the file name and the mode
+    // button, and still needs the height to stand them in: fall back to the
+    // stylesheet rather than collapsing the bar onto its own contents.
+    if (metrics.height > 0) {
+      document.documentElement.style.setProperty(
+        "--titlebar-height",
+        `${metrics.height}px`,
+      );
+    } else {
+      document.documentElement.style.removeProperty("--titlebar-height");
+    }
     root.style.paddingLeft =
       metrics.trafficLightsRight === 0
         ? ""
