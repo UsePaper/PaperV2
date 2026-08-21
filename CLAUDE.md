@@ -58,14 +58,14 @@ Do not add these. Do not suggest them. If a task needs one of them, stop and ask
 - Tabs. A second document means a second window, not a tab bar.
 - Focus mode or typewriter mode
 - Outline panel or table of contents panel
-- Math (KaTeX), diagrams (Mermaid), or charts
+- Math (KaTeX) or charts. Mermaid diagrams are exception 6.
 - Footnotes, definition lists, or admonitions
 - Collaborative editing or any network feature, other than the update check in
   exception 5
 - Telemetry, analytics, or auto update
 - A theme gallery, or a settings dialog that grows past one screen
 
-**Five exceptions:**
+**Six exceptions:**
 
 1. The source mode toggle stays. It shows the raw Markdown in a plain text area. It is
    a debug tool and a user escape hatch.
@@ -125,6 +125,21 @@ Do not add these. Do not suggest them. If a task needs one of them, stop and ask
    download, install, or restart anything: it reports, and offers to open the
    releases page. **An update check that runs by itself, on a timer or at launch, is
    the thing that was ruled out, and adding one is not a small change to this.**
+6. **Mermaid diagrams are drawn in presentation and reading**, and never in editing,
+   where the fence is shown as the code it is. What admitted them is that nothing in
+   the document moves: a ```mermaid fence is already an ordinary code block, so the
+   schema, the parser and the serializer are untouched, no node type was added, and
+   the drawing path never dispatches a transaction. It reads the block's text and
+   writes into a sibling element, so looking at a diagram cannot change the file. A
+   corpus file covers the round trip. Mermaid is loaded on demand, so a document
+   without a diagram never pays for it, and the whole of it costs about 850KB on
+   disk because Tauri compresses what it embeds. It is drawn in the page's own
+   palette rather than mermaid's, so it follows the theme and the font that are set.
+
+   **This is not an argument for KaTeX, and the difference is worth keeping.** Inline
+   math would need a new inline construct in the schema, a parser rule, a serializer
+   rule and corpus coverage: it changes what a document is made of, which is the
+   thing this list exists to protect. A diagram changes only what is drawn.
 
 ---
 

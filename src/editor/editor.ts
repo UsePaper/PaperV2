@@ -53,6 +53,8 @@ export class Editor {
   /** The live image views, so they can be looked up again. */
   private readonly images = new Set<ImageView>();
   private mode: ViewMode = "editing";
+  /** Every code block on the page, so diagrams can be drawn or put away. */
+  private readonly blocks = new Set<CodeBlockView>();
 
   constructor(mount: HTMLElement, options: EditorOptions = {}) {
     this.onChange = options.onChange;
@@ -65,8 +67,14 @@ export class Editor {
       editable: () => this.mode !== "reading",
       // A code block is a CodeMirror editor. See nodeviews/codeblock.ts.
       nodeViews: {
-        code_block: (node, view, getPos, _decorations, innerDecorations) =>
-          new CodeBlockView(node, view, getPos, innerDecorations),
+        code_block: (node, view, getPos, _decorations, innerDecorations) => {
+          const block = new CodeBlockView(node, view, getPos, innerDecorations, () =>
+            this.blocks.delete(block),
+          );
+          this.blocks.add(block);
+          block.setDiagramMode(this.mode !== "editing");
+          return block;
+        },
         image: (node) => {
           const image: ImageView = new ImageView(node, this.resolveImage, () =>
             this.images.delete(image),
@@ -152,7 +160,16 @@ export class Editor {
   setMode(mode: ViewMode): void {
     if (this.mode === mode) return;
     this.mode = mode;
+    // A diagram is drawn in presentation and reading, and is the code in
+    // editing, where there is something to type into.
+    for (const block of this.blocks) block.setDiagramMode(mode !== "editing");
     this.view.dispatch(this.view.state.tr);
+  }
+
+  /** Redraws the diagrams, for when the theme they were drawn against moves. */
+  refreshDiagrams(): void {
+    if (this.mode === "editing") return;
+    for (const block of this.blocks) block.setDiagramMode(true);
   }
 
   /**

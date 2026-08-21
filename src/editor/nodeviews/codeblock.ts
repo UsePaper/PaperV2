@@ -20,6 +20,7 @@ import {
   keymap as codeKeymap,
 } from "@codemirror/view";
 import { tags } from "@lezer/highlight";
+import { isDiagram, renderDiagram } from "./diagram";
 import { exitCode, setBlockType } from "prosemirror-commands";
 import { redo, undo } from "prosemirror-history";
 import type { Node as ProseNode } from "prosemirror-model";
@@ -145,6 +146,8 @@ export class CodeBlockView implements NodeView {
   private readonly view: EditorView;
   private readonly getPos: () => number | undefined;
   private readonly cm: CodeView;
+  /** Our own element around CodeMirror's. See the constructor. */
+  private readonly codeWrap: HTMLElement;
   private readonly language = new Compartment();
 
   /** True while one editor is applying a change that came from the other. */
@@ -153,12 +156,19 @@ export class CodeBlockView implements NodeView {
   private languageRequest = 0;
   /** The match the find bar is on, so the block scrolls only when it moves. */
   private currentMatch: string | null = null;
+  /** Where a mermaid diagram is drawn, once there is one to draw. */
+  private diagram: HTMLElement | null = null;
+  /** Rises with each diagram request, so a slow render cannot land last. */
+  private diagramRequest = 0;
+  /** Editing shows the code; the other two show the picture. */
+  private showingDiagram = false;
 
   constructor(
     node: ProseNode,
     view: EditorView,
     getPos: () => number | undefined,
     innerDecorations?: DecorationSource,
+    private readonly onDestroy?: () => void,
   ) {
     this.node = node;
     this.view = view;
@@ -170,8 +180,15 @@ export class CodeBlockView implements NodeView {
     this.dom = document.createElement("div");
     this.dom.className = "pm-codeblock";
 
+    // A second wrapper, and it earns its place: CodeMirror injects
+    // `display: flex !important` onto its own editor element, so no rule of
+    // ours can hide it to make room for a diagram. This one it does not touch.
+    this.codeWrap = document.createElement("div");
+    this.codeWrap.className = "pm-code";
+    this.dom.append(this.codeWrap);
+
     this.cm = new CodeView({
-      parent: this.dom,
+      parent: this.codeWrap,
       state: CodeState.create({
         doc: node.textContent,
         extensions: [
@@ -196,6 +213,50 @@ export class CodeBlockView implements NodeView {
 
     this.setLanguage(node.attrs.params as string);
     if (innerDecorations) this.showFindMatches(innerDecorations);
+  }
+
+  /**
+   * Draws the diagram instead of the code, or puts the code back.
+   *
+   * The CodeMirror editor is hidden rather than torn down, so switching modes
+   * does not lose the caret, the selection or the undo history inside it.
+   */
+  setDiagramMode(drawing: boolean): void {
+    const wanted = drawing && isDiagram(this.dom.dataset.language ?? "");
+    if (wanted === this.showingDiagram) {
+      if (wanted) void this.drawDiagram();
+      return;
+    }
+
+    this.showingDiagram = wanted;
+    this.dom.classList.toggle("is-diagram", wanted);
+    if (wanted) void this.drawDiagram();
+    else this.diagram?.replaceChildren();
+  }
+
+  private async drawDiagram(): Promise<void> {
+    const request = (this.diagramRequest += 1);
+    const source = this.node.textContent;
+
+    if (!this.diagram) {
+      this.diagram = document.createElement("div");
+      this.diagram.className = "pm-diagram";
+      this.dom.append(this.diagram);
+    }
+
+    const svg = await renderDiagram(source);
+    // A later edit, a mode change, or a destroyed view wins over this one.
+    if (request !== this.diagramRequest || !this.showingDiagram) return;
+
+    if (svg) {
+      this.diagram.innerHTML = svg;
+      this.dom.classList.remove("is-unreadable");
+    } else {
+      // Nothing to draw yet. The code is shown instead, which is the only
+      // useful thing to say about a diagram that does not parse.
+      this.diagram.replaceChildren();
+      this.dom.classList.add("is-unreadable");
+    }
   }
 
   /**
@@ -400,6 +461,8 @@ export class CodeBlockView implements NodeView {
   }
 
   destroy(): void {
+    this.diagramRequest += 1;
+    this.onDestroy?.();
     // Stops a language that is still loading from touching a dead view.
     this.languageRequest += 1;
     this.cm.destroy();

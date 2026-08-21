@@ -134,11 +134,19 @@ let persistTimer: number | undefined;
 onSettingsChange((settings) => {
   applySettings(settings);
   editor.setSpellcheck(settings.spellcheck);
+  // A diagram is drawn in the theme that was current when it was drawn.
+  editor.refreshDiagrams();
   sourceView.spellcheck = settings.spellcheck;
   // Only after the stored settings are in, so the defaults never overwrite
   // the file before it has been read.
   if (settingsLoaded) schedulePersist(settings);
 });
+
+// The "System" theme follows the operating system, which can change without
+// the settings file moving, and a diagram holds the colours it was drawn in.
+window
+  .matchMedia("(prefers-color-scheme: dark)")
+  .addEventListener("change", () => editor.refreshDiagrams());
 
 function schedulePersist(settings: Readonly<Settings>): void {
   // A slider fires on every step, so the write waits for the dragging to stop.

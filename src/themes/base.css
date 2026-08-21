@@ -731,6 +731,28 @@ body.source-mode .source {
    match the block it replaced. CodeMirror ships its own layout; only what
    would look foreign in a document is overridden here. */
 
+/* A mermaid block draws itself in presentation and reading. The CodeMirror
+   editor stays in the tree, hidden, so switching back keeps its caret. */
+.pm-codeblock.is-diagram > .pm-code {
+  display: none;
+}
+
+.pm-diagram {
+  display: flex;
+  justify-content: center;
+  padding: 4px 0;
+}
+
+.pm-diagram svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Nothing drawable yet, which is most of the time while one is being written. */
+.pm-codeblock.is-diagram.is-unreadable > .pm-code {
+  display: block;
+}
+
 .pm-codeblock {
   position: relative;
   border-radius: 6px;
@@ -787,6 +809,12 @@ body.source-mode .source {
   font-size: 10px;
   color: var(--text-faint);
   pointer-events: none;
+}
+
+/* A drawn diagram does not need to be labelled as one. Written after the rule
+   above rather than before it: the two tie on specificity, so order decides. */
+.pm-codeblock.is-diagram:not(.is-unreadable)::before {
+  content: none;
 }
 
 /* Syntax colours. The names come from nodeviews/codeblock.ts; the values are
