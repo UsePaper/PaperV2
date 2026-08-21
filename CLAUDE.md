@@ -439,10 +439,19 @@ emits the item id on the `menu` event and the frontend runs it, through the sing
 4. **One transaction for each user action.** An input rule removes the characters and
    applies the mark. Both steps go in one transaction, so one undo press reverses both.
 
-5. **`schema.ts` is the single source of truth for node types.** If you add a node, you
+5. **The clipboard speaks Markdown, in both directions.** Text pasted in is
+   parsed, and text copied out is serialized, so a heading keeps its hashes on
+   the way to another application. `clipboardTextParser` alone is not enough:
+   a clipboard that also carries HTML never reaches it, and the HTML a code
+   editor writes is syntax colouring wrapped around Markdown source. So
+   `handlePaste` reads the plain text first and prefers it whenever it carries
+   block syntax. Prose without that syntax still goes the HTML route, which is
+   what keeps the formatting of an article copied from a web page.
+
+6. **`schema.ts` is the single source of truth for node types.** If you add a node, you
    must update the parser, the serializer, and the corpus in the same change.
 
-6. **Do not add a node type without a request.** See section 1.
+7. **Do not add a node type without a request.** See section 1.
 
 ---
 

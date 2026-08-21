@@ -2,8 +2,10 @@ import { toggleMark } from "prosemirror-commands";
 import { dropCursor } from "prosemirror-dropcursor";
 import { gapCursor } from "prosemirror-gapcursor";
 import { history, redo, undo } from "prosemirror-history";
+import { Fragment, Slice } from "prosemirror-model";
 import { EditorState, TextSelection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
+import { isCodeContext, looksLikeMarkdown, markdownSlice } from "./clipboard";
 import { inputRulesPlugin } from "./inputrules";
 import { baseKeymapPlugin, editorKeymap } from "./keymap";
 import { CodeBlockView } from "./nodeviews/codeblock";
@@ -72,6 +74,26 @@ export class Editor {
           this.images.add(image);
           return image;
         },
+      },
+      // Text arriving from outside is Markdown, and is read as Markdown.
+      clipboardTextParser: (text, $context) =>
+        isCodeContext($context) ? new Slice(Fragment.empty, 0, 0) : markdownSlice(text),
+      // Text leaving is Markdown too, so a heading copied out of here still
+      // has its hashes when it lands somewhere else.
+      clipboardTextSerializer: (slice) =>
+        serializeMarkdown(schema.topNodeType.create(null, slice.content)),
+      // A clipboard carrying HTML would otherwise never reach the parser
+      // above, and the HTML a code editor writes is syntax colouring wrapped
+      // around Markdown that then pastes in as its own source.
+      handlePaste: (view, event) => {
+        const text = event.clipboardData?.getData("text/plain");
+        if (!text || !looksLikeMarkdown(text)) return false;
+        if (isCodeContext(view.state.selection.$from)) return false;
+
+        view.dispatch(
+          view.state.tr.replaceSelection(markdownSlice(text)).scrollIntoView(),
+        );
+        return true;
       },
       dispatchTransaction: (tr) => {
         this.view.updateState(this.view.state.apply(tr));
