@@ -221,16 +221,16 @@ function loadIntoEditor(markdown: string): void {
 
 /* File actions ------------------------------------------------------------- */
 
-async function openFile(): Promise<void> {
-  const path = await openDialog();
-  if (!path) return;
-
-  // Already open somewhere? Then that window is the answer, even if this one
-  // is blank and could have taken the file.
+/**
+ * Where a file lands, whether it was chosen here or handed to us by the system.
+ * A document lives in one window, so the window already showing it wins, even
+ * when this one is blank and could have taken it. Failing that, an untouched
+ * window is a blank sheet and the file loads into it; anything else keeps the
+ * document it is holding and the file gets a window of its own.
+ */
+async function routeToWindow(path: string): Promise<void> {
   if (await raiseWindowFor(path)) return;
 
-  // An untouched window is a blank sheet, so the file lands here. Anything
-  // else keeps its document and the file gets a window of its own.
   if (!isBlankDocument(getFileState(), currentMarkdown())) {
     await newWindow(path);
     return;
@@ -238,22 +238,17 @@ async function openFile(): Promise<void> {
   await loadPath(path);
 }
 
-/**
- * Puts a file the system handed us somewhere sensible: here when this window is
- * a blank sheet, otherwise in a window of its own so nothing in progress is
- * displaced.
- */
+async function openFile(): Promise<void> {
+  const path = await openDialog();
+  if (!path) return;
+  await routeToWindow(path);
+}
+
+/** Finder, the `paper` command, or a second window opening a file we hold. */
 async function openPath(path: string): Promise<void> {
-  // Finder can deliver the same path twice, once stashed and once announced.
+  // The same path can arrive twice, once stashed and once announced.
   if (getFileState().path === path) return;
-
-  if (await raiseWindowFor(path)) return;
-
-  if (!isBlankDocument(getFileState(), currentMarkdown())) {
-    await newWindow(path);
-    return;
-  }
-  await loadPath(path);
+  await routeToWindow(path);
 }
 
 async function loadPath(path: string): Promise<void> {

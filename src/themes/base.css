@@ -75,7 +75,7 @@ body[data-platform="mac"] .titlebar {
   -webkit-app-region: no-drag;
 }
 
-/* The one control the chrome carries: which of the two modes the document is
+/* The one control the chrome carries: which of the three modes the document is
    being shown in. It says so by how present it is and nothing more. A filled
    patch of colour up here competes with the page, and the page already shows
    which mode it is in. */
