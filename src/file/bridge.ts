@@ -155,6 +155,25 @@ export async function checkForUpdate(): Promise<UpdateCheck> {
   return invoke<UpdateCheck>("check_for_update");
 }
 
+export interface CliInstall {
+  status: "installed" | "already" | "cancelled";
+  path: string;
+}
+
+/**
+ * Links the `paper` command, which ships inside the bundle, onto PATH. Rejects
+ * with the reason when it cannot: there is nothing to link in browser mode,
+ * and nothing to link from in a development build either.
+ */
+export async function installCli(): Promise<CliInstall> {
+  if (!isTauri()) {
+    throw new Error(
+      "The command ships inside the application bundle, which a browser has no way to reach.",
+    );
+  }
+  return invoke<CliInstall>("install_cli");
+}
+
 export async function openReleasesPage(): Promise<void> {
   if (!isTauri()) {
     window.open("https://github.com/UsePaper/PaperV2/releases/latest", "_blank");

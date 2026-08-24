@@ -7,6 +7,7 @@ import {
   closeAllWindows,
   hasFileAccess,
   initialPath,
+  installCli,
   messageDialog,
   newWindow,
   openReleasesPage,
@@ -465,6 +466,9 @@ function runCommand(id: string): void {
     case "check_for_updates":
       void checkForUpdates();
       break;
+    case "install_cli":
+      void installCommandLineTool();
+      break;
     case "quit":
       void quit();
       break;
@@ -504,6 +508,31 @@ async function checkForUpdates(): Promise<void> {
     "Could not check for updates",
     "The latest version could not be reached. Check your connection, or look at the releases page.",
   );
+}
+
+/**
+ * The other menu item that reaches outside the document: it links the `paper`
+ * command from inside the bundle onto PATH. Writing to /usr/local/bin may need
+ * authorisation, which the system asks for itself.
+ */
+async function installCommandLineTool(): Promise<void> {
+  try {
+    const result = await installCli();
+
+    // The authorisation sheet was dismissed. The user knows what they did.
+    if (result.status === "cancelled") return;
+
+    await messageDialog(
+      result.status === "already"
+        ? "The command is already installed"
+        : "The command is installed",
+      `${result.path} runs Paper. Open a file with \`paper notes.md\`, and remove the command with \`rm ${result.path}\`.`,
+      "info",
+    );
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    await messageDialog("Could not install the command", detail);
+  }
 }
 
 /**

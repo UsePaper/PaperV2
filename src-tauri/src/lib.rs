@@ -30,6 +30,7 @@ pub fn run() {
         .on_menu_event(menu::on_event)
         .invoke_handler(tauri::generate_handler![
             commands::chrome::titlebar_metrics,
+            commands::cli::install_cli,
             commands::window::new_window,
             commands::window::close_all_windows,
             commands::window::initial_path,

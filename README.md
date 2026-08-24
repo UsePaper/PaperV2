@@ -26,10 +26,15 @@ The file opens in Paper. One that does not exist yet is created empty, so the
 same command starts a new note; a file already open is raised rather than
 opened twice. With no file, `paper` brings Paper forward.
 
+Install it from **Paper → Install Command Line Tool…**. That links the command
+into `/usr/local/bin`, which belongs to root, so macOS asks for your password;
+the sheet is the system's own and Paper never sees what you type. Remove it
+again with `rm /usr/local/bin/paper`.
+
 The command is a shell script that hands the paths to Launch Services, which is
 the route a double click in Finder takes: a running Paper takes the file and no
-second copy starts. It ships inside the bundle, so installing it is a link onto
-your PATH.
+second copy starts. It ships inside the bundle, so the menu item only makes a
+link, and to put that link somewhere else you can make it yourself:
 
 ```bash
 ln -s /Applications/Paper.app/Contents/Resources/paper ~/.local/bin/paper

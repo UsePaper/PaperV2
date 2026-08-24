@@ -15,13 +15,25 @@ pub fn build<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<(Menu<R>, Submenu<
         .accelerator("CmdOrCtrl+,")
         .build(app)?;
 
+    // What it installs is a shell script inside the bundle, so the item only
+    // means anything on macOS. Everywhere else the binary already takes its
+    // files as arguments and there is nothing to install.
+    #[cfg(target_os = "macos")]
+    let install_cli =
+        MenuItemBuilder::with_id("install_cli", "Install Command Line Tool…").build(app)?;
+
     let app_menu = SubmenuBuilder::new(app, "Paper")
         .item(&PredefinedMenuItem::about(
             app,
             Some("About Paper"),
             Some(AboutMetadata::default()),
         )?)
-        .item(&MenuItemBuilder::with_id("check_for_updates", "Check for Updates…").build(app)?)
+        .item(&MenuItemBuilder::with_id("check_for_updates", "Check for Updates…").build(app)?);
+
+    #[cfg(target_os = "macos")]
+    let app_menu = app_menu.item(&install_cli);
+
+    let app_menu = app_menu
         .separator()
         .item(&settings)
         .separator()

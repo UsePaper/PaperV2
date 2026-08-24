@@ -65,7 +65,7 @@ Do not add these. Do not suggest them. If a task needs one of them, stop and ask
 - Telemetry, analytics, or auto update
 - A theme gallery, or a settings dialog that grows past one screen
 
-**Six exceptions:**
+**Seven exceptions:**
 
 1. The source mode toggle stays. It shows the raw Markdown in a plain text area. It is
    a debug tool and a user escape hatch.
@@ -140,6 +140,23 @@ Do not add these. Do not suggest them. If a task needs one of them, stop and ask
    math would need a new inline construct in the schema, a parser rule, a serializer
    rule and corpus coverage: it changes what a document is made of, which is the
    thing this list exists to protect. A diagram changes only what is drawn.
+
+7. **`paper` on the command line**, and the menu item that installs it. The
+   command is a shell script inside the bundle, `scripts/paper`: it resolves the
+   paths and hands them to Launch Services, which is the route a double click in
+   Finder already takes, so a running Paper receives the file as
+   `RunEvent::Opened` and nothing about the document, the parser or the window
+   model changed. What it cost was one Rust command and one menu item. The item
+   links the script into `/usr/local/bin`, where every editor that offers this
+   puts its command, and the authorisation for that directory is the system's
+   own sheet. There is no uninstall item, because removing a symlink is `rm` and
+   a second item would be the larger cost. macOS only: everywhere else the
+   binary is handed its files as arguments and there is nothing to install.
+
+   **The line to hold is that the command opens files and does nothing else.** A
+   flag that converts, prints, renders or edits a document from the terminal is
+   a second interface to the editor, with its own arguments to keep working and
+   its own output to support, and that is a different program from this one.
 
 ---
 
