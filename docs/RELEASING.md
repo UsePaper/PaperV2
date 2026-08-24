@@ -98,8 +98,18 @@ git push origin v0.2.0
 ```
 
 The workflow builds a universal binary, signs it, waits for Apple, staples the
-ticket, and leaves a **draft** release with the `.dmg` attached. Look at it, then
-publish.
+ticket, and leaves a **draft** release with the `.dmg` attached.
+
+**Write the notes before publishing.** `releaseBody` in the workflow is fixed
+boilerplate, the same two lines every time, because a description of what
+changed is not something a build step can write. Replace it on the draft with
+what a person using Paper would notice, one short section per change:
+
+```bash
+gh release edit v0.2.0 --notes-file notes.md
+```
+
+Past releases are the model to match. Then look at the result, and publish.
 
 ## Checking a build before anyone downloads it
 
