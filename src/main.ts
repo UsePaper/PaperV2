@@ -26,6 +26,7 @@ import {
   watchFile,
   writeFileAtomic,
   writeSettings,
+  type FileContents,
 } from "./file/bridge";
 import {
   displayName,
@@ -251,18 +252,29 @@ async function openPath(path: string): Promise<void> {
   await routeToWindow(path);
 }
 
-async function loadPath(path: string): Promise<void> {
+/**
+ * Reads a file for opening, or reports why it could not be and answers null.
+ * Split out of `loadPath` so `start` can read before the mode is chosen,
+ * without opening the file into the editor twice.
+ */
+async function readFileForOpening(path: string): Promise<FileContents | null> {
   try {
-    const file = await readFile(path);
-    // The path is recorded first: a relative image resolves against the folder
-    // the document lives in, and the pictures are loaded as the document is
-    // built, so the file has to be known by then.
-    markSaved(file.path, file.mtimeMs, file.lineEnding);
-    loadIntoEditor(file.content);
-    editor.focus();
+    return await readFile(path);
   } catch (error) {
     await reportError("Could not open the file.", error);
+    return null;
   }
+}
+
+async function loadPath(path: string): Promise<void> {
+  const file = await readFileForOpening(path);
+  if (!file) return;
+  // The path is recorded first: a relative image resolves against the folder
+  // the document lives in, and the pictures are loaded as the document is
+  // built, so the file has to be known by then.
+  markSaved(file.path, file.mtimeMs, file.lineEnding);
+  loadIntoEditor(file.content);
+  editor.focus();
 }
 
 async function saveFile(forceOverwrite = false): Promise<void> {
@@ -621,17 +633,26 @@ editor.focus();
 void start();
 
 /**
- * The order matters. The mode needs both the preference and whether this
- * window opened for a file, so both are awaited first, and it is set before
- * the file is read so the document does not change mode in front of anyone.
+ * The order matters. Reading mode is a dead end on a document with nothing in
+ * it, whether that is because no file was opened or because the file opened
+ * is empty, so the mode cannot be chosen until the file has been read. It is
+ * still chosen before the file is loaded into the editor, so the document
+ * does not appear in one mode and change to another in front of the reader.
  * Never from the settings listener: that also fires when another window
  * writes, which would drag every open window along with it.
  */
 async function start(): Promise<void> {
   await loadSettings();
   const path = await initialPath();
-  setMode(startingMode(getSettings().defaultMode, path !== null));
-  if (path) await loadPath(path);
+  const file = path ? await readFileForOpening(path) : null;
+
+  setMode(startingMode(getSettings().defaultMode, !file || file.content.trim() === ""));
+
+  if (file) {
+    markSaved(file.path, file.mtimeMs, file.lineEnding);
+    loadIntoEditor(file.content);
+    editor.focus();
+  }
 }
 
 // Finder opening a file while this window is already running.

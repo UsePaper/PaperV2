@@ -87,10 +87,12 @@ Do not add these. Do not suggest them. If a task needs one of them, stop and ask
    reach into windows already open, because the settings file is shared by all of them and
    a row that pulled a reader out of what they were doing to answer a choice made in
    another window would be worse than the papercut it fixes. One exception, in
-   `startingMode`: a window with no file opens in editing however the row reads,
-   because reading mode has no caret and nothing to type into, so a blank window in
-   it offers nothing to read and no way to begin. Presentation keeps the keyboard and
-   needs no such exception, and a file opened in reading mode is what was asked for.
+   `startingMode`: a window with nothing in it opens in editing however the row
+   reads, because reading mode has no caret and nothing to type into, so a blank
+   document offers nothing to read and no way to begin. That covers a new window
+   with no file and a file that turns out to be empty alike; a file with real
+   content in it opens in reading mode, which is what was asked for. Presentation
+   keeps the keyboard and needs no such exception.
    The footer carries a **Reset**, which is an action and not a ninth setting: it puts
    the eight back to their defaults after asking, because a sheet has no undo and the
    settings are cheap to set again but not to remember.

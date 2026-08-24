@@ -159,27 +159,28 @@ describe("resetSettings", () => {
 });
 
 describe("startingMode", () => {
-  it("uses the preference when the window opened for a file", () => {
+  it("uses the preference when there is something to read", () => {
     for (const mode of DEFAULT_MODES) {
-      expect(startingMode(mode, true)).toBe(mode);
+      expect(startingMode(mode, false)).toBe(mode);
     }
   });
 
-  it("opens an empty window in editing however reading is preferred", () => {
-    // Reading has no caret and nothing to type into, so a blank window in it
-    // offers nothing to read and no way to start.
-    expect(startingMode("reading", false)).toBe("editing");
+  it("opens a blank document in editing however reading is preferred", () => {
+    // Reading has no caret and nothing to type into, so nothing to read
+    // offers no way to start. Blank covers a new window and an empty file
+    // alike: both leave the document with nothing in it.
+    expect(startingMode("reading", true)).toBe("editing");
   });
 
-  it("leaves the other two alone on an empty window", () => {
-    // Presentation keeps the keyboard, so an empty window in it is still a
+  it("leaves the other two alone on a blank document", () => {
+    // Presentation keeps the keyboard, so a blank document in it is still a
     // window you can write in. Only reading is a dead end.
-    expect(startingMode("presentation", false)).toBe("presentation");
-    expect(startingMode("editing", false)).toBe("editing");
+    expect(startingMode("presentation", true)).toBe("presentation");
+    expect(startingMode("editing", true)).toBe("editing");
   });
 
-  it("still opens a file in reading when that is the preference", () => {
-    expect(startingMode("reading", true)).toBe("reading");
+  it("still opens a file with real content in reading when that is the preference", () => {
+    expect(startingMode("reading", false)).toBe("reading");
   });
 });
 

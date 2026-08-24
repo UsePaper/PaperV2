@@ -112,11 +112,13 @@ export const LEADING_RANGE = { min: 1.2, max: 2.4 } as const;
 export const DEFAULT_MODES: readonly ViewMode[] = ["editing", "presentation", "reading"];
 
 /**
- * Reading has no caret and nothing to type into, so an empty window in it
- * offers nothing to read and no way to begin. Only that case is overridden.
+ * Reading has no caret and nothing to type into, so a document with nothing
+ * in it offers nothing to read and no way to begin. That is true whether
+ * there is no file at all, as for a new window, or the file opened is empty.
+ * Only that case is overridden.
  */
-export function startingMode(preference: ViewMode, hasFile: boolean): ViewMode {
-  return !hasFile && preference === "reading" ? "editing" : preference;
+export function startingMode(preference: ViewMode, blank: boolean): ViewMode {
+  return blank && preference === "reading" ? "editing" : preference;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
