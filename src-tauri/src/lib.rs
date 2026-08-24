@@ -9,6 +9,7 @@ pub fn run() {
         .manage(commands::window::PendingPaths::default())
         .manage(commands::watch::FileWatchers::default())
         .manage(commands::window::OpenDocuments::default())
+        .manage(commands::window::LastFocused::default())
         .setup(|app| {
             let (menu, window_menu) = menu::build(app.handle())?;
             app.set_menu(menu)?;
@@ -49,15 +50,21 @@ pub fn run() {
             commands::update::check_for_update,
             commands::update::open_releases_page,
         ])
-        .on_window_event(|window, event| {
+        .on_window_event(|window, event| match event {
+            // Which document a menu item means, when the menu bar is shared by
+            // every window and none of them is key.
+            tauri::WindowEvent::Focused(true) => {
+                commands::window::remember_focus(window.app_handle(), window.label());
+            }
             // A closed document leaves its watcher, its thread and its file
             // handle behind unless they are released here.
-            if let tauri::WindowEvent::Destroyed = event {
+            tauri::WindowEvent::Destroyed => {
                 commands::watch::forget(window.app_handle(), window.label());
                 // Its claim on a file goes with it, or that document could
                 // never be opened again.
                 commands::window::forget_window(window.app_handle(), window.label());
             }
+            _ => {}
         })
         .build(tauri::generate_context!())
         .expect("error while building tauri application");

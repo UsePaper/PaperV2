@@ -3,7 +3,7 @@ use tauri::menu::{
 };
 use tauri::{AppHandle, Emitter, EventTarget, Runtime};
 
-use crate::commands::window::focused;
+use crate::commands::window::focused_or_last;
 
 /// The event name the frontend listens on. The payload is the menu item id.
 pub const MENU_EVENT: &str = "menu";
@@ -205,7 +205,7 @@ pub fn attach_window_menu<R: Runtime>(window_menu: &Submenu<R>) {
 /// broadcast would save or close all of them at once.
 pub fn on_event<R: Runtime>(app: &AppHandle<R>, event: MenuEvent) {
     let id = event.id().0.as_str();
-    match focused(app) {
+    match focused_or_last(app) {
         Some(window) => {
             let _ = app.emit_to(EventTarget::webview_window(window.label()), MENU_EVENT, id);
         }

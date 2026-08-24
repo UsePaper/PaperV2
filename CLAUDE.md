@@ -445,9 +445,17 @@ The menu is native, built in `src-tauri/src/menu.rs`. Rust owns no actions: a cl
 emits the item id on the `menu` event and the frontend runs it, through the single
 `runCommand` switch in `src/main.ts`.
 
-- **The menu bar is shared by every window, so an item is emitted only to the focused
-  one.** A plain `emit` would broadcast, and one press of Save would write every open
-  document. Use `emit_to` with the focused window's label.
+- **The menu bar is shared by every window, so an item is emitted to one window
+  only.** A plain `emit` would broadcast, and one press of Save would write every open
+  document. Use `emit_to` with a single window's label.
+
+- **That window is the focused one, or the one focused last.** macOS leaves no window
+  key while every window is minimized, and the application stays frontmost with its
+  menu bar in place, so `is_focused` answers no for all of them and an item chosen then
+  would reach nobody: Save, Settings and the mode items did nothing at all. `LastFocused`
+  in `commands/window.rs` remembers the label, `WindowEvent::Focused(true)` writes it,
+  and closing that window clears it. The fallback names one window, never all of them,
+  which is the property the first rule is protecting.
 
 - A menu accelerator is consumed before the webview sees it, so any shortcut in the
   menu must work through `runCommand`, not only through the ProseMirror keymap.

@@ -24,6 +24,14 @@ pub struct PendingPaths(pub Mutex<HashMap<String, String>>);
 #[derive(Default)]
 pub struct OpenDocuments(pub Mutex<HashMap<String, PathBuf>>);
 
+/// The window that last had the caret in it.
+///
+/// macOS leaves no window key while every one of them is minimized, and the
+/// application stays frontmost with its menu bar in place. A menu item chosen
+/// in that state has a document it plainly means, and this is how it is found.
+#[derive(Default)]
+pub struct LastFocused(pub Mutex<Option<String>>);
+
 /// Compares files, not the text naming them: Finder says `/private/tmp/a.md`
 /// where the open dialog says `/tmp/a.md`, and they are the same document.
 fn same_file(path: &Path) -> PathBuf {
@@ -103,6 +111,25 @@ pub async fn new_window_for<R: Runtime>(
     Ok(window.label().to_string())
 }
 
+/// Remembers which window the user was working in. Called for every window that
+/// takes focus, so the answer survives the window losing it again.
+pub fn remember_focus<R: Runtime>(app: &AppHandle<R>, label: &str) {
+    if let Ok(mut last) = app.state::<LastFocused>().0.lock() {
+        *last = Some(label.to_string());
+    }
+}
+
+/// The window a menu item applies to: the one with the caret in it, or failing
+/// that the one that had it last. See `LastFocused`.
+pub fn focused_or_last<R: Runtime>(app: &AppHandle<R>) -> Option<WebviewWindow<R>> {
+    if let Some(window) = focused(app) {
+        return Some(window);
+    }
+
+    let label = app.state::<LastFocused>().0.lock().ok()?.clone()?;
+    app.get_webview_window(&label)
+}
+
 /// Records what a window is showing, or that it is showing nothing. Called by
 /// the frontend whenever the document's path changes: opened, saved somewhere
 /// new, or lost from under it.
@@ -121,6 +148,14 @@ pub fn set_window_path(app: AppHandle, window: WebviewWindow, path: Option<Strin
 pub fn forget_window<R: Runtime>(app: &AppHandle<R>, label: &str) {
     if let Ok(mut open) = app.state::<OpenDocuments>().0.lock() {
         open.remove(label);
+    }
+
+    // A closed window is not where a menu item should land, however recently
+    // the user was working in it.
+    if let Ok(mut last) = app.state::<LastFocused>().0.lock() {
+        if last.as_deref() == Some(label) {
+            *last = None;
+        }
     }
 }
 
