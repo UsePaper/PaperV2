@@ -1,0 +1,134 @@
+#!/bin/sh
+#
+# Paper's command line entry. `paper notes.md` opens the file in Paper.
+#
+# Opening is Launch Services' job rather than ours: Paper is a document
+# application, and `open` hands the file to the copy that is already running
+# instead of starting a second one beside it. That is the same route a double
+# click in Finder takes, so the file arrives as `RunEvent::Opened` and lands in
+# `commands::window::open_paths` like any other.
+#
+# This wrapper ships inside the bundle, at Paper.app/Contents/Resources/paper,
+# and is meant to be reached through a symlink on PATH. See the README.
+
+set -eu
+
+BUNDLE_ID=com.rafi.paperv2
+
+usage() {
+    cat <<'EOF'
+Usage: paper [file ...]
+
+Opens each file in Paper. A file that does not exist yet is created empty, so
+`paper notes.md` starts a new note. With no file, brings Paper forward and
+starts it if it is not running.
+EOF
+}
+
+fail() {
+    printf 'paper: %s\n' "$1" >&2
+}
+
+# `open` is macOS. Everywhere else the app takes its files as arguments and
+# needs no wrapper, so say so rather than failing halfway down.
+if [ "$(uname -s)" != Darwin ]; then
+    fail "this command is macOS only"
+    exit 1
+fi
+
+while [ $# -gt 0 ]; do
+    case $1 in
+        -h | --help)
+            usage
+            exit 0
+            ;;
+        --)
+            shift
+            break
+            ;;
+        -*)
+            fail "unknown option: $1"
+            usage >&2
+            exit 2
+            ;;
+        *) break ;;
+    esac
+done
+
+# The app this script came from, so a copy in /Applications and one in a build
+# directory each get their own CLI. `$0` is the symlink on PATH, so follow it
+# to the file itself first.
+self=$0
+while [ -L "$self" ]; do
+    link=$(readlink "$self")
+    case $link in
+        /*) self=$link ;;
+        *) self=$(dirname "$self")/$link ;;
+    esac
+done
+here=$(cd -- "$(dirname -- "$self")" && pwd -P)
+
+case $here in
+    */Contents/Resources) app=${here%/Contents/Resources} ;;
+    # Run from the repository rather than from a bundle: ask Launch Services
+    # for whichever Paper is installed.
+    *) app= ;;
+esac
+
+launch() {
+    if [ -n "$app" ]; then
+        open -a "$app" "$@"
+    else
+        open -b "$BUNDLE_ID" "$@"
+    fi
+}
+
+if [ $# -eq 0 ]; then
+    launch
+    exit $?
+fi
+
+# Rebuild the arguments as absolute paths, dropping the ones that cannot be
+# opened. Every survivor starts with a slash, so none of them can be mistaken
+# for an option by `open`.
+status=0
+remaining=$#
+while [ "$remaining" -gt 0 ]; do
+    arg=$1
+    shift
+    remaining=$((remaining - 1))
+
+    case $arg in
+        /*) file=$arg ;;
+        *) file=$PWD/$arg ;;
+    esac
+
+    if [ -d "$file" ]; then
+        fail "$arg is a directory"
+        status=1
+        continue
+    fi
+
+    if [ ! -e "$file" ]; then
+        dir=$(dirname -- "$file")
+        if [ ! -d "$dir" ]; then
+            fail "no such directory: $dir"
+            status=1
+            continue
+        fi
+        # A new note is an empty file. `open` has nothing to hand over
+        # otherwise, and refusing would mean no way to start one from here.
+        if ! : > "$file"; then
+            status=1
+            continue
+        fi
+    fi
+
+    set -- "$@" "$file"
+done
+
+if [ $# -gt 0 ]; then
+    launch "$@" || status=$?
+fi
+
+exit $status

@@ -16,6 +16,31 @@ pnpm tauri dev
 `pnpm dev` runs the editor in a plain browser. File access is stubbed there, so
 use `pnpm tauri dev` for anything that touches disk.
 
+## From the terminal
+
+```bash
+paper notes.md
+```
+
+The file opens in Paper. One that does not exist yet is created empty, so the
+same command starts a new note; a file already open is raised rather than
+opened twice. With no file, `paper` brings Paper forward.
+
+The command is a shell script that hands the paths to Launch Services, which is
+the route a double click in Finder takes: a running Paper takes the file and no
+second copy starts. It ships inside the bundle, so installing it is a link onto
+your PATH.
+
+```bash
+ln -s /Applications/Paper.app/Contents/Resources/paper ~/.local/bin/paper
+```
+
+From a checkout, link `scripts/paper` instead. It is the same file, and it falls
+back to whichever Paper is installed.
+
+macOS only. Elsewhere the binary takes its files as arguments already, so
+`paperv2 notes.md` is the whole of it.
+
 ## Checks
 
 ```bash

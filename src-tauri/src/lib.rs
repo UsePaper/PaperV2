@@ -69,7 +69,7 @@ pub fn run() {
         // naming it anywhere else does not compile. Everywhere else the path
         // arrives as an argument and is handled in `setup` above.
         #[cfg(target_os = "macos")]
-        if let tauri::RunEvent::Opened { urls } = _event {
+        if let tauri::RunEvent::Opened { urls } = &_event {
             let paths: Vec<String> = urls
                 .iter()
                 .filter_map(|url| url.to_file_path().ok())
@@ -77,6 +77,24 @@ pub fn run() {
                 .collect();
             if !paths.is_empty() {
                 commands::window::open_paths(_handle, paths);
+            }
+        }
+
+        // The dock icon, and `paper` with no file: both ask the app to show
+        // itself. There is only something to do when nothing is on screen,
+        // which means every window is minimized. Closing the last window ends
+        // the process, so a running app with no windows at all does not occur.
+        #[cfg(target_os = "macos")]
+        if let tauri::RunEvent::Reopen {
+            has_visible_windows,
+            ..
+        } = _event
+        {
+            if !has_visible_windows {
+                if let Some(window) = _handle.webview_windows().into_values().next() {
+                    let _ = window.unminimize();
+                    let _ = window.set_focus();
+                }
             }
         }
     });
