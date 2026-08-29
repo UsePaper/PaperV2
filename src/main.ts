@@ -230,6 +230,24 @@ function currentMarkdown(): string {
   return sourceMode ? sourceView.value : editor.getMarkdown();
 }
 
+/** The whole document to the clipboard, without touching the selection. */
+async function copyMarkdown(): Promise<void> {
+  try {
+    await navigator.clipboard.writeText(currentMarkdown());
+  } catch {
+    // WebKit can refuse the async API to a window it decides is not focused
+    // enough. The old route still works, and the selection it needs is its
+    // own, in a textarea that is gone before anyone sees it.
+    const area = document.createElement("textarea");
+    area.value = currentMarkdown();
+    document.body.append(area);
+    area.select();
+    document.execCommand("copy");
+    area.remove();
+    editor.focus();
+  }
+}
+
 function loadIntoEditor(markdown: string): void {
   editor.setMarkdown(markdown);
   if (sourceMode) sourceView.value = markdown;
@@ -459,6 +477,9 @@ function runCommand(id: string): void {
     case "code":
       editor.toggleMark(id);
       break;
+    case "copy_markdown":
+      void copyMarkdown();
+      break;
     case "find":
       openFind(false);
       break;
@@ -597,6 +618,8 @@ function browserShortcut(key: string, shift: boolean, alt: boolean): string | nu
       return shift ? "toggle_outline" : "open";
     case "s":
       return shift ? "save_as" : "save";
+    case "c":
+      return shift ? "copy_markdown" : null;
     case "f":
       return alt ? "replace" : "find";
     case "g":

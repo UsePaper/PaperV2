@@ -94,6 +94,12 @@ pub fn build<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<(Menu<R>, Submenu<
         .separator()
         .item(&PredefinedMenuItem::cut(app, None)?)
         .item(&PredefinedMenuItem::copy(app, None)?)
+        // The whole document as the Markdown it is, wherever the caret sits.
+        .item(
+            &MenuItemBuilder::with_id("copy_markdown", "Copy Markdown")
+                .accelerator("CmdOrCtrl+Shift+C")
+                .build(app)?,
+        )
         .item(&PredefinedMenuItem::paste(app, None)?)
         .item(&PredefinedMenuItem::select_all(app, None)?)
         .separator()
