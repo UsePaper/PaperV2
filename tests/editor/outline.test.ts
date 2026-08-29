@@ -168,3 +168,64 @@ describe("the outline panel", () => {
     expect(root.querySelectorAll(".outline-item").length).toBe(2);
   });
 });
+
+describe("the panel withdrawing on its own", () => {
+  it("goes after five seconds left alone", () => {
+    vi.useFakeTimers();
+    const { handle } = panel([]);
+    handle.toggle();
+
+    vi.advanceTimersByTime(4900);
+    expect(handle.isOpen).toBe(true);
+    vi.advanceTimersByTime(200);
+    expect(handle.isOpen).toBe(false);
+    vi.useRealTimers();
+  });
+
+  it("stays while the pointer is over it", () => {
+    vi.useFakeTimers();
+    const { root, handle } = panel([]);
+    handle.toggle();
+
+    root.dispatchEvent(new Event("pointerenter"));
+    vi.advanceTimersByTime(20000);
+    expect(handle.isOpen).toBe(true);
+
+    // Leaving starts the clock again.
+    root.dispatchEvent(new Event("pointerleave"));
+    vi.advanceTimersByTime(5100);
+    expect(handle.isOpen).toBe(false);
+    vi.useRealTimers();
+  });
+
+  it("stays while the document is being worked on", () => {
+    vi.useFakeTimers();
+    const { handle } = panel([]);
+    handle.toggle();
+
+    vi.advanceTimersByTime(4000);
+    handle.refresh(); // a keystroke reached the document
+    vi.advanceTimersByTime(4000);
+    expect(handle.isOpen).toBe(true);
+
+    vi.advanceTimersByTime(1100);
+    expect(handle.isOpen).toBe(false);
+    vi.useRealTimers();
+  });
+
+  // The click was the arrival, so the panel leaves sooner, pointer or not.
+  it("goes three seconds after a click, even under the pointer", () => {
+    vi.useFakeTimers();
+    const { root, handle } = panel([{ level: 1, text: "One", pos: 0 }]);
+    handle.toggle();
+
+    root.dispatchEvent(new Event("pointerenter"));
+    root.querySelector<HTMLButtonElement>(".outline-item")?.click();
+
+    vi.advanceTimersByTime(2900);
+    expect(handle.isOpen).toBe(true);
+    vi.advanceTimersByTime(200);
+    expect(handle.isOpen).toBe(false);
+    vi.useRealTimers();
+  });
+});

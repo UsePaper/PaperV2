@@ -18,11 +18,20 @@ export interface OutlineHandle {
 /** A heading past this line into the page counts as the section being read. */
 const ACTIVE_BAND = 100;
 
+/** Left alone this long, the panel puts itself away. */
+const IDLE_MS = 5000;
+
+/** A click got the reader where they were going; the panel leaves sooner. */
+const CLICKED_MS = 3000;
+
 /**
  * The headings of the document, flowing in over the right edge and floating
  * there the way the find bar does: opening it must not shift the text being
  * read. A click reveals its heading, centred; as the page scrolls, the entry
- * whose section is under the reader is marked.
+ * whose section is under the reader is marked. Five seconds without scrolling,
+ * typing or a pointer over it — three, once a click has arrived somewhere —
+ * and the panel withdraws on its own: it is a way of getting somewhere, not
+ * chrome that stays.
  */
 export function mountOutline(
   root: HTMLElement,
@@ -46,6 +55,24 @@ export function mountOutline(
       cannot immediately take the mark off the entry that was clicked: a
       heading near the end of the document can never reach the top. */
   let holdUntil = 0;
+  let idleTimer: number | undefined;
+  /** No withdrawing out from under the pointer that is about to click. */
+  let hovered = false;
+
+  function stayAwhile(): void {
+    window.clearTimeout(idleTimer);
+    if (!open || hovered) return;
+    idleTimer = window.setTimeout(() => handle.close(), IDLE_MS);
+  }
+
+  root.addEventListener("pointerenter", () => {
+    hovered = true;
+    window.clearTimeout(idleTimer);
+  });
+  root.addEventListener("pointerleave", () => {
+    hovered = false;
+    stayAwhile();
+  });
 
   function render(): void {
     root.innerHTML = "";
@@ -73,6 +100,10 @@ export function mountOutline(
         target.revealHeading(entries[index].pos);
         setActive(index);
         holdUntil = performance.now() + 200;
+        // The shorter fuse, and it burns under the pointer too: the click
+        // was the arrival.
+        window.clearTimeout(idleTimer);
+        idleTimer = window.setTimeout(() => handle.close(), CLICKED_MS);
       });
       buttons.push(item);
       root.append(item);
@@ -100,10 +131,14 @@ export function mountOutline(
 
   // Plain reads and one class toggle, cheap enough to run on every scroll
   // event; a frame-aligned throttle here starves in throttled webviews.
+  // During the hold the scroll is the click's own, and must not stretch the
+  // click's shorter fuse back out to the idle one.
   scroller.addEventListener(
     "scroll",
     () => {
-      if (open && performance.now() >= holdUntil) markActive();
+      if (!open || performance.now() < holdUntil) return;
+      markActive();
+      stayAwhile();
     },
     { passive: true },
   );
@@ -123,11 +158,13 @@ export function mountOutline(
       shape = null;
       handle.refresh();
       onOpenChange?.(true);
+      stayAwhile();
     },
 
     close(): void {
       if (!open) return;
       open = false;
+      window.clearTimeout(idleTimer);
       root.classList.remove("is-open");
       onOpenChange?.(false);
     },
@@ -141,6 +178,8 @@ export function mountOutline(
         render();
       }
       markActive();
+      // Typing is activity; the panel stays while the document moves.
+      stayAwhile();
     },
   };
 

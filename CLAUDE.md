@@ -167,8 +167,9 @@ Do not add these. Do not suggest them. If a task needs one of them, stop and ask
    it. A click scrolls the heading to the top and, where there is a
    caret, puts the caret there; as the page scrolls, the entry over the section
    being read is marked. It is not chrome the document cannot shed: the panel
-   is closed until asked for, remembers nothing, and belongs to its window
-   alone — a toggle, not a ninth setting.
+   is closed until asked for, withdraws on its own after five seconds left
+   alone — three, once a click has arrived somewhere — remembers nothing, and
+   belongs to its window alone — a toggle, not a ninth setting.
 
    **The line to hold is that the outline lists headings and navigates.** A
    panel that filters, folds, drags sections into a new order, or lists
