@@ -143,6 +143,11 @@ pub fn build<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<(Menu<R>, Submenu<
                 .accelerator("CmdOrCtrl+/")
                 .build(app)?,
         )
+        .item(
+            &MenuItemBuilder::with_id("toggle_outline", "Outline")
+                .accelerator("CmdOrCtrl+Shift+O")
+                .build(app)?,
+        )
         .separator()
         // Three ways of showing the same document. See src/editor/editor.ts.
         .item(

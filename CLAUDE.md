@@ -57,7 +57,6 @@ Do not add these. Do not suggest them. If a task needs one of them, stop and ask
 - File tree, folder view, or workspace concept
 - Tabs. A second document means a second window, not a tab bar.
 - Focus mode or typewriter mode
-- Outline panel or table of contents panel
 - Math (KaTeX) or charts. Mermaid diagrams are exception 6.
 - Footnotes, definition lists, or admonitions
 - Collaborative editing or any network feature, other than the update check in
@@ -65,7 +64,7 @@ Do not add these. Do not suggest them. If a task needs one of them, stop and ask
 - Telemetry, analytics, or auto update
 - A theme gallery, or a settings dialog that grows past one screen
 
-**Seven exceptions:**
+**Eight exceptions:**
 
 1. The source mode toggle stays. It shows the raw Markdown in a plain text area. It is
    a debug tool and a user escape hatch.
@@ -159,6 +158,21 @@ Do not add these. Do not suggest them. If a task needs one of them, stop and ask
    flag that converts, prints, renders or edits a document from the terminal is
    a second interface to the editor, with its own arguments to keep working and
    its own output to support, and that is a different program from this one.
+
+8. **The outline panel**, toggled from the View menu. It was on the list above
+   and came off it by request, and what let it in is that it obeys the same law
+   as the find bar: it floats over the page instead of reserving a strip, so
+   opening it never reflows the text, and it reads the document without ever
+   writing it. A click scrolls the heading to the top and, where there is a
+   caret, puts the caret there; as the page scrolls, the entry over the section
+   being read is marked. It is not chrome the document cannot shed: the panel
+   is closed until asked for, remembers nothing, and belongs to its window
+   alone — a toggle, not a ninth setting.
+
+   **The line to hold is that the outline lists headings and navigates.** A
+   panel that filters, folds, drags sections into a new order, or lists
+   anything besides the headings is the workspace chrome this list still
+   keeps out.
 
 ---
 
@@ -258,6 +272,7 @@ PaperV2/
       titlebar.ts          the document name in the native title bar area
       settings.ts          the settings sheet
       findbar.ts           find and replace
+      outline.ts           the outline panel. See exception 8.
       statusbar.ts         the word count and the file state
     themes/
       base.css             the layout and the editor structure

@@ -48,6 +48,7 @@ import {
   type Settings,
 } from "./settings/state";
 import { mountFindbar } from "./ui/findbar";
+import { mountOutline } from "./ui/outline";
 import { mountSettings } from "./ui/settings";
 import { mountStatusbar } from "./ui/statusbar";
 import { MODE_ORDER, mountTitlebar, nextMode } from "./ui/titlebar";
@@ -77,6 +78,8 @@ const editor = new Editor(editorMount, {
     statusbar.update(editor.wordCount());
     // Replacing text changes how many matches are left.
     findbar.refresh();
+    // Editing a heading changes the outline.
+    outlinePanel.refresh();
   },
   resolveImage,
 });
@@ -99,6 +102,7 @@ async function resolveImage(src: string): Promise<string | null> {
 }
 
 const findbar = mountFindbar(element("findbar"), editor);
+const outlinePanel = mountOutline(element("outline"), editor, element("workspace"));
 
 const titlebar = mountTitlebar(element("titlebar"), {
   onCycleMode: () => setMode(nextMode(mode)),
@@ -112,6 +116,11 @@ const titlebar = mountTitlebar(element("titlebar"), {
    as well, leaving text that can be selected and copied but not typed into. */
 
 let mode: ViewMode = "editing";
+
+/** A debug tool and an escape hatch. See CLAUDE.md section 1. Declared here
+    because the first `setMode` call below reads it: further down, that read
+    hit the temporal dead zone and stopped the whole module from loading. */
+let sourceMode = false;
 
 function setMode(next: ViewMode): void {
   mode = next;
@@ -188,15 +197,14 @@ void onSettingsWritten((contents) => {
 
 /* Source mode -------------------------------------------------------------- */
 
-/** A debug tool and an escape hatch. See CLAUDE.md section 1. */
-let sourceMode = false;
-
 function toggleSourceMode(): void {
   sourceMode = !sourceMode;
   if (sourceMode) {
-    // The bar searches the document, and source mode shows the raw text
-    // instead, so leaving it open would highlight something off screen.
+    // The bar searches the document, and the outline points into it, but
+    // source mode shows the raw text instead, so leaving either open would
+    // aim at something that is not on screen.
     findbar.close();
+    outlinePanel.close();
     sourceView.value = editor.getMarkdown();
     document.body.classList.add("source-mode");
     sourceView.focus();
@@ -458,6 +466,10 @@ function runCommand(id: string): void {
     case "toggle_source":
       toggleSourceMode();
       break;
+    case "toggle_outline":
+      // Source mode shows the raw text, which the outline cannot point into.
+      if (!sourceMode) outlinePanel.toggle();
+      break;
     case "mode_editing":
       setMode("editing");
       break;
@@ -574,7 +586,7 @@ function browserShortcut(key: string, shift: boolean, alt: boolean): string | nu
     case "n":
       return "new_window";
     case "o":
-      return "open";
+      return shift ? "toggle_outline" : "open";
     case "s":
       return shift ? "save_as" : "save";
     case "f":

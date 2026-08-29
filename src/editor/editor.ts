@@ -34,6 +34,13 @@ import { serializeMarkdown } from "./serializer";
  */
 export type ViewMode = "editing" | "presentation" | "reading";
 
+/** A heading in the document, in document order, for the outline panel. */
+export interface OutlineEntry {
+  level: number;
+  text: string;
+  pos: number;
+}
+
 export interface EditorOptions {
   /** Called after any transaction that changed the document. */
   onChange?: () => void;
@@ -189,6 +196,47 @@ export class Editor {
 
   getMarkdown(): string {
     return serializeMarkdown(this.view.state.doc);
+  }
+
+  /* Outline ---------------------------------------------------------------- */
+
+  /** Every heading in order, wherever it sits: a quote or a list can hold one. */
+  outline(): OutlineEntry[] {
+    const entries: OutlineEntry[] = [];
+    this.view.state.doc.descendants((node, pos) => {
+      if (node.type === schema.nodes.heading) {
+        entries.push({ level: node.attrs.level as number, text: node.textContent, pos });
+      }
+      return true;
+    });
+    return entries;
+  }
+
+  /**
+   * Scrolls a heading to the top of the page and, where there is a caret, puts
+   * it there too. Reading mode scrolls without selecting: a click in the
+   * outline is navigation, not a selection.
+   */
+  revealHeading(pos: number): void {
+    const node = this.view.state.doc.nodeAt(pos);
+    if (!node || node.type !== schema.nodes.heading) return;
+
+    if (this.mode !== "reading") {
+      this.view.dispatch(
+        this.view.state.tr.setSelection(TextSelection.create(this.view.state.doc, pos + 1)),
+      );
+    }
+    const dom = this.view.nodeDOM(pos);
+    // Centred, like a found match: the floating panel cannot be covering the
+    // heading it just revealed.
+    if (dom instanceof HTMLElement) dom.scrollIntoView({ block: "center" });
+    this.focus();
+  }
+
+  /** Where a heading sits on screen, for the outline to track the reader. */
+  headingTop(pos: number): number | null {
+    const dom = this.view.nodeDOM(pos);
+    return dom instanceof HTMLElement ? dom.getBoundingClientRect().top : null;
   }
 
   /* Find and replace ------------------------------------------------------ */
