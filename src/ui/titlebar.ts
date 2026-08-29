@@ -8,11 +8,15 @@ const BUTTON_GAP = 12;
 export interface TitlebarHandle {
   /** Reflects the mode the document is being shown in. */
   setMode(mode: ViewMode): void;
+  /** Reflects whether the outline panel is out. */
+  setOutlineOpen(open: boolean): void;
 }
 
 export interface TitlebarOptions {
   /** Asked for when the mode button is pressed. */
   onCycleMode: () => void;
+  /** Asked for when the outline button is pressed. */
+  onToggleOutline: () => void;
 }
 
 /** What each mode is called, and what pressing the button moves on to. */
@@ -51,7 +55,17 @@ export function mountTitlebar(
   mode.className = "titlebar-mode";
   mode.addEventListener("click", options.onCycleMode);
 
-  root.append(title, mode);
+  // Nearest the edge the panel flows in from.
+  const outline = document.createElement("button");
+  outline.type = "button";
+  outline.className = "titlebar-outline";
+  outline.title = "Outline";
+  outline.setAttribute("aria-label", "Outline");
+  outline.setAttribute("aria-expanded", "false");
+  outline.append(outlineIcon());
+  outline.addEventListener("click", options.onToggleOutline);
+
+  root.append(title, mode, outline);
 
   onFileStateChange(() => {
     const { dirty } = getFileState();
@@ -78,7 +92,33 @@ export function mountTitlebar(
       mode.title = label;
       mode.setAttribute("aria-label", label);
     },
+
+    setOutlineOpen(open: boolean): void {
+      outline.classList.toggle("is-open", open);
+      outline.setAttribute("aria-expanded", String(open));
+    },
   };
+}
+
+/** Indented lines, the shape of a table of contents. */
+function outlineIcon(): SVGSVGElement {
+  const namespace = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(namespace, "svg");
+  svg.setAttribute("viewBox", "0 0 16 16");
+  svg.setAttribute("width", "14");
+  svg.setAttribute("height", "14");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("fill", "none");
+  svg.setAttribute("stroke", "currentColor");
+  svg.setAttribute("stroke-width", "1.3");
+  svg.setAttribute("stroke-linecap", "round");
+
+  for (const d of ["M3 4.2h10", "M5.5 8h7.5", "M5.5 11.8h7.5"]) {
+    const path = document.createElementNS(namespace, "path");
+    path.setAttribute("d", d);
+    svg.append(path);
+  }
+  return svg;
 }
 
 /** Drawn rather than typed, so it sits on the same line at any text size. */

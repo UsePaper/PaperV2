@@ -159,11 +159,12 @@ Do not add these. Do not suggest them. If a task needs one of them, stop and ask
    a second interface to the editor, with its own arguments to keep working and
    its own output to support, and that is a different program from this one.
 
-8. **The outline panel**, toggled from the View menu. It was on the list above
-   and came off it by request, and what let it in is that it obeys the same law
-   as the find bar: it floats over the page instead of reserving a strip, so
-   opening it never reflows the text, and it reads the document without ever
-   writing it. A click scrolls the heading to the top and, where there is a
+8. **The outline panel**, toggled from the View menu and from a button in the
+   title bar, flowing in over the right edge. It was on the list above and came
+   off it by request, and what let it in is that it obeys the same law as the
+   find bar: it floats over the page instead of reserving a strip, so opening
+   it never reflows the text, and it reads the document without ever writing
+   it. A click scrolls the heading to the top and, where there is a
    caret, puts the caret there; as the page scrolls, the entry over the section
    being read is marked. It is not chrome the document cannot shed: the panel
    is closed until asked for, remembers nothing, and belongs to its window

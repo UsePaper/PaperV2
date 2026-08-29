@@ -97,26 +97,28 @@ function panel(entries: { level: number; text: string; pos: number }[]) {
   document.body.append(root, scroller);
 
   const revealed: number[] = [];
+  const openChanges: boolean[] = [];
   const target: OutlineTarget = {
     outline: () => entries,
     revealHeading: (pos) => revealed.push(pos),
     headingTop: () => null,
   };
 
-  return { root, handle: mountOutline(root, target, scroller), revealed };
+  const handle = mountOutline(root, target, scroller, (open) => openChanges.push(open));
+  return { root, handle, revealed, openChanges };
 }
 
 describe("the outline panel", () => {
-  it("stays hidden until toggled, and toggles back", () => {
+  it("stays closed until toggled, and toggles back", () => {
     const { root, handle } = panel([]);
-    expect(root.hidden).toBe(true);
+    expect(root.classList.contains("is-open")).toBe(false);
 
     handle.toggle();
-    expect(root.hidden).toBe(false);
+    expect(root.classList.contains("is-open")).toBe(true);
     expect(handle.isOpen).toBe(true);
 
     handle.toggle();
-    expect(root.hidden).toBe(true);
+    expect(root.classList.contains("is-open")).toBe(false);
     expect(handle.isOpen).toBe(false);
   });
 
@@ -144,6 +146,15 @@ describe("the outline panel", () => {
 
     root.querySelector<HTMLButtonElement>(".outline-item")?.click();
     expect(revealed).toEqual([4]);
+  });
+
+  // The title bar button mirrors the panel, however it was opened or closed.
+  it("reports every change of openness, and only changes", () => {
+    const { handle, openChanges } = panel([]);
+    handle.toggle();
+    handle.toggle();
+    handle.close();
+    expect(openChanges).toEqual([true, false]);
   });
 
   it("follows the document as it changes", () => {

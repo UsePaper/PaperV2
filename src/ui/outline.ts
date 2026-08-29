@@ -19,18 +19,21 @@ export interface OutlineHandle {
 const ACTIVE_BAND = 100;
 
 /**
- * The headings of the document, floating over the left edge the way the find
- * bar floats over the right, and for the same reason: opening it must not
- * shift the text being read. A click reveals its heading, centred; as the
- * page scrolls, the entry whose section is under the reader is marked.
+ * The headings of the document, flowing in over the right edge and floating
+ * there the way the find bar does: opening it must not shift the text being
+ * read. A click reveals its heading, centred; as the page scrolls, the entry
+ * whose section is under the reader is marked.
  */
 export function mountOutline(
   root: HTMLElement,
   target: OutlineTarget,
   scroller: HTMLElement,
+  onOpenChange?: (open: boolean) => void,
 ): OutlineHandle {
   root.innerHTML = "";
-  root.hidden = true;
+  // Shown by class, not by `hidden`: the slide needs a closed state that can
+  // still transition.
+  root.hidden = false;
   root.setAttribute("aria-label", "Outline");
 
   let open = false;
@@ -116,14 +119,17 @@ export function mountOutline(
         return;
       }
       open = true;
-      root.hidden = false;
+      root.classList.add("is-open");
       shape = null;
       handle.refresh();
+      onOpenChange?.(true);
     },
 
     close(): void {
+      if (!open) return;
       open = false;
-      root.hidden = true;
+      root.classList.remove("is-open");
+      onOpenChange?.(false);
     },
 
     refresh(): void {

@@ -79,7 +79,8 @@ body[data-platform="mac"] .titlebar {
    being shown in. It says so by how present it is and nothing more. A filled
    patch of colour up here competes with the page, and the page already shows
    which mode it is in. */
-.titlebar-mode {
+.titlebar-mode,
+.titlebar-outline {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -94,7 +95,9 @@ body[data-platform="mac"] .titlebar {
   transition: color 140ms ease;
 }
 
-.titlebar-mode:hover {
+.titlebar-mode:hover,
+.titlebar-outline:hover,
+.titlebar-outline.is-open {
   color: var(--text);
 }
 
@@ -149,13 +152,14 @@ body.source-mode .source {
 
 /* Outline ------------------------------------------------------------------ */
 
-/* Floats over the left edge the way the find bar floats over the right, and
-   for the same reason: opening it must not shift the text being read. */
+/* Flows in over the right edge and floats there the way the find bar does:
+   opening it must not shift the text being read. Below the find bar, which is
+   transient and should never be lost behind a panel that stays out. */
 .outline {
   position: fixed;
   top: calc(var(--titlebar-height) + 8px);
-  left: 14px;
-  z-index: 20;
+  right: 14px;
+  z-index: 19;
   width: 220px;
   max-height: calc(100vh - var(--titlebar-height) - var(--statusbar-height) - 16px);
   overflow-y: auto;
@@ -168,10 +172,26 @@ body.source-mode .source {
   box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
   font-size: 12px;
   color: var(--text);
+  /* Closed: parked past the edge it flows in from. Visibility switches after
+     the slide out, so the panel cannot be clicked while parked. */
+  transform: translateX(calc(100% + 22px));
+  visibility: hidden;
+  transition:
+    transform 240ms ease,
+    visibility 0s linear 240ms;
 }
 
-.outline[hidden] {
-  display: none;
+.outline.is-open {
+  transform: none;
+  visibility: visible;
+  transition: transform 240ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .outline,
+  .outline.is-open {
+    transition: none;
+  }
 }
 
 @supports not (

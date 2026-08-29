@@ -102,10 +102,18 @@ async function resolveImage(src: string): Promise<string | null> {
 }
 
 const findbar = mountFindbar(element("findbar"), editor);
-const outlinePanel = mountOutline(element("outline"), editor, element("workspace"));
+const outlinePanel = mountOutline(
+  element("outline"),
+  editor,
+  element("workspace"),
+  // The button in the title bar shows whether the panel is out, however it
+  // was opened or closed.
+  (open) => titlebar.setOutlineOpen(open),
+);
 
 const titlebar = mountTitlebar(element("titlebar"), {
   onCycleMode: () => setMode(nextMode(mode)),
+  onToggleOutline: () => runCommand("toggle_outline"),
 });
 
 /* Modes ---------------------------------------------------------------------
