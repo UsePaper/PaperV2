@@ -11,7 +11,7 @@ use tauri::{AppHandle, Emitter, EventTarget, Manager, Runtime, WebviewWindow};
 use super::fs::mtime_ms;
 
 /// Sent to a window when its file changed underneath it. See CLAUDE.md
-/// section 9 rules 4 and 5.
+/// section 8 rules 4 and 5.
 pub const FILE_CHANGED_EVENT: &str = "file-changed";
 
 /// One save by another program arrives as several events, and an editor that

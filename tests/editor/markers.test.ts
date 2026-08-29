@@ -28,7 +28,7 @@ function markersAt(markdown: string, caretAt: number, enabled = true): string[] 
   view.destroy();
   mount.remove();
 
-  // A marker is a decoration, never text. See CLAUDE.md section 8 rule 2.
+  // A marker is a decoration, never text. See CLAUDE.md section 7 rule 2.
   expect(after).toBe(markdown);
   return markers;
 }

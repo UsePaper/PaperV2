@@ -12,7 +12,7 @@ import { Decoration, DecorationSet } from "prosemirror-view";
  * the reader.
  *
  * Every marker here is a widget decoration. This plugin must never touch the
- * document. See CLAUDE.md section 8 rule 2.
+ * document. See CLAUDE.md section 7 rule 2.
  */
 
 function marker(pos: number, text: string, side: number): Decoration {
@@ -91,7 +91,7 @@ function markerDecorations(doc: ProseNode, headPos: number): Decoration[] {
   }
 
   // Only the active block is scanned, so this stays cheap on a large file.
-  // See CLAUDE.md section 8 rule 3.
+  // See CLAUDE.md section 7 rule 3.
   block.forEach((child, childOffset, index) => {
     const from = contentStart + childOffset;
 

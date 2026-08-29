@@ -217,32 +217,9 @@ cargo test
 
 Run `pnpm typecheck` and `pnpm test` before you report a task as complete.
 
-The scaffold does not include the `typecheck`, `test`, and `test:roundtrip` scripts. Add
-them to `package.json` in the first task that needs them.
-
 ---
 
-## 4. Clean Up the Scaffold First
-
-`create-tauri-app` leaves demonstration code in the repository. Remove it before you
-build a feature.
-
-| File | Action |
-|---|---|
-| `src/main.ts` | Delete the `greet` form code. Keep the entry point. |
-| `index.html` | Delete the logo markup and the demonstration form. |
-| `src/styles.css` | Delete it. The themes replace it. See section 5. |
-| `src/assets/` | Delete the template logos. |
-| `src-tauri/src/lib.rs` | Delete the `greet` command. Keep `run()`. |
-| `src-tauri/tauri.conf.json` | Keep native decorations. Set the window size. See section 7. |
-
-Do this once. Do not leave the demonstration code beside real code.
-
----
-
-## 5. Repository Layout
-
-This is the target layout. The scaffold does not have it yet. Build it as you go.
+## 4. Repository Layout
 
 ```
 PaperV2/
@@ -251,9 +228,11 @@ PaperV2/
   vite.config.ts
   tsconfig.json
   index.html
+  scripts/
+    paper                  the command line tool. Ships inside the bundle. See exception 7.
 
   src/
-    main.ts                application entry point
+    main.ts                application entry point, and the runCommand switch
     editor/
       schema.ts            the ProseMirror schema. The single source of node types.
       parser.ts            Markdown text -> ProseMirror document
@@ -261,12 +240,15 @@ PaperV2/
       inputrules.ts        the live syntax rules, for example "# " -> heading
       keymap.ts            the key bindings
       editor.ts            builds and holds the EditorView
+      clipboard.ts         the Markdown clipboard. See section 7 rule 5.
       plugins/
         markers.ts         shows the syntax markers at the caret. Decorations only.
         placeholder.ts     the empty document hint
+        find.ts            the find and replace matches, as decorations
       nodeviews/
         codeblock.ts       the CodeMirror 6 NodeView
         image.ts           the image NodeView
+        diagram.ts         draws a mermaid fence. See exception 6.
     file/
       bridge.ts            the invoke() calls to Rust. The only file that calls invoke.
       state.ts             the current path, the dirty flag, the mtime
@@ -287,7 +269,7 @@ PaperV2/
   src-tauri/
     Cargo.toml             crate paperv2, library paperv2_lib
     tauri.conf.json        the window configuration and the bundle configuration
-    capabilities/default.json   the permissions. See section 7.
+    capabilities/default.json   the permissions. See section 6.
     src/
       main.rs              calls paperv2_lib::run(). Do not add logic here.
       lib.rs               registers the commands, the menu and the plugins
@@ -299,22 +281,24 @@ PaperV2/
         window.rs          new_window, initial_path, close_all_windows
         chrome.rs          titlebar_metrics, measured from AppKit
         watch.rs           the external file change watcher
+        update.rs          the manual update check. See exception 5.
+        cli.rs             installs the paper command. See exception 7.
 
   tests/
     roundtrip/
-      corpus/              approximately 50 real .md files
-      roundtrip.test.ts    the round trip suite. See section 6.
-    editor/
-      inputrules.test.ts   the live syntax rules, driven through the real view
-      markers.test.ts      the marker decorations
-      editable.test.ts     guards that every empty block stays typeable
+      corpus/              real .md files, one per construct or defect fixed
+      roundtrip.test.ts    the round trip suite. See section 5.
+    editor/                the live rules, markers, modes, node views, clipboard,
+                           find, and the guard that every empty block stays typeable
+    file/
+      state.test.ts        the dirty flag and the external change rules
     settings/
       state.test.ts        the defensive settings parsing
 ```
 
 ---
 
-## 6. The Round Trip Rule
+## 5. The Round Trip Rule
 
 **This is the most important rule in the repository.**
 
@@ -360,7 +344,7 @@ Do not change these values. The corpus depends on them.
 
 ---
 
-## 7. Tauri 2 Notes
+## 6. Tauri 2 Notes
 
 ### Permissions Are Explicit
 
@@ -466,7 +450,7 @@ emits the item id on the `menu` event and the frontend runs it, through the sing
 
 ---
 
-## 8. Rules for the Editor Code
+## 7. Rules for the Editor Code
 
 1. **Never change the document outside a transaction.** Use `view.dispatch(tr)` only.
    Never edit the DOM of the editor by hand.
@@ -497,7 +481,7 @@ emits the item id on the `menu` event and the frontend runs it, through the sing
 
 ---
 
-## 9. Rules for the File Code
+## 8. Rules for the File Code
 
 1. Read files as UTF-8. Remove the BOM if it is present.
 2. Change CRLF to LF in memory. Write back the original style.
@@ -511,7 +495,7 @@ emits the item id on the `menu` event and the frontend runs it, through the sing
 
 ---
 
-## 10. Code Style
+## 9. Code Style
 
 - TypeScript strict mode is on. Do not use `any`. Do not use `@ts-ignore`.
 - Prefer named exports. Avoid default exports.
@@ -522,7 +506,7 @@ emits the item id on the `menu` event and the frontend runs it, through the sing
 
 ---
 
-## 11. Before You Report Work as Complete
+## 10. Before You Report Work as Complete
 
 1. `pnpm typecheck` passes.
 2. `pnpm test` passes, and the round trip suite is included.

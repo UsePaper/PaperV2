@@ -10,7 +10,7 @@ import { schema } from "./schema";
 
 /**
  * Applies a mark and removes the syntax that triggered it, in one transaction,
- * so that a single undo press reverses both. See CLAUDE.md section 8 rule 4.
+ * so that a single undo press reverses both. See CLAUDE.md section 7 rule 4.
  */
 function markInputRule(pattern: RegExp, markType: MarkType): InputRule {
   return new InputRule(pattern, (state, match, start, end) => {

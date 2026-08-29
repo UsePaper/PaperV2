@@ -66,7 +66,7 @@ export type ExternalChange =
   | "gone";
 
 /**
- * Decides what a change on disk means. See CLAUDE.md section 9 rules 4 and 5.
+ * Decides what a change on disk means. See CLAUDE.md section 8 rules 4 and 5.
  *
  * `mtimeMs` is null when the file has gone.
  */

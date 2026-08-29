@@ -3,7 +3,7 @@ import { MarkdownSerializer } from "prosemirror-markdown";
 import { schema, type CellAlign } from "./schema";
 
 /**
- * The output style is fixed. See the table in CLAUDE.md section 6.
+ * The output style is fixed. See the table in CLAUDE.md section 5.
  * Changing a value here invalidates the round trip corpus, so do not.
  */
 export const markdownSerializer = new MarkdownSerializer(

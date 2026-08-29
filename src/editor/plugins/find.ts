@@ -7,11 +7,11 @@ import { Decoration, DecorationSet } from "prosemirror-view";
  *
  * Every highlight here is a decoration. This plugin must never touch the
  * document; only the replace commands in `editor.ts` do that. See CLAUDE.md
- * section 8 rule 2.
+ * section 7 rule 2.
  *
  * The Custom Highlight API would be the natural fit and is deliberately not
  * used: WebKitGTK is the weakest of the three engines here, and decorations
- * work everywhere. See CLAUDE.md section 7.
+ * work everywhere. See CLAUDE.md section 6.
  */
 
 export interface Match {
@@ -110,7 +110,7 @@ export const findPlugin = new Plugin<FindState>({
       }
 
       // Only while a search is running, so an ordinary keystroke never pays for
-      // a whole document scan. See CLAUDE.md section 8 rule 3.
+      // a whole document scan. See CLAUDE.md section 7 rule 3.
       if (tr.docChanged && value.query) {
         const matches = findMatches(tr.doc, value.query);
         return { ...value, matches, current: wrap(value.current, matches.length) };

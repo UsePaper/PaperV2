@@ -5,7 +5,7 @@ import type { LineEnding } from "./state";
 /**
  * The only module that calls `invoke`. Everything else talks to these
  * functions, so `pnpm dev` in a plain browser keeps working against the stub
- * below. See CLAUDE.md section 7.
+ * below. See CLAUDE.md section 6.
  */
 
 export interface FileContents {

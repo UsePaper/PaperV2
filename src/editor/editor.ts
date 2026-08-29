@@ -228,7 +228,7 @@ export class Editor {
     const tr = this.view.state.tr;
     // Back to front, so replacing one match cannot shift the range of the next
     // one. It is a single transaction, so one undo takes the lot back. See
-    // CLAUDE.md section 8 rule 4.
+    // CLAUDE.md section 7 rule 4.
     for (let index = matches.length - 1; index >= 0; index -= 1) {
       tr.insertText(replacement, matches[index].from, matches[index].to);
     }

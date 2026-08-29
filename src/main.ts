@@ -327,7 +327,7 @@ async function saveFileAs(): Promise<void> {
 
    Another program can write to the file while it is open here. The watcher
    follows whichever file this window holds, and every report is answered by
-   the rules in CLAUDE.md section 9. */
+   the rules in CLAUDE.md section 8. */
 
 let documentPath: string | null = null;
 

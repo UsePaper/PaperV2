@@ -4,7 +4,7 @@ import { Schema } from "prosemirror-model";
  * The single source of truth for node and mark types.
  *
  * Adding an entry here is only half of the change: the parser, the serializer
- * and the round trip corpus must move with it. See CLAUDE.md section 8 rule 5.
+ * and the round trip corpus must move with it. See CLAUDE.md section 7 rule 6.
  *
  * The set below is CommonMark minus the constructs listed as out of scope,
  * plus pipe tables, which are not CommonMark but are written everywhere.

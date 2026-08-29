@@ -115,7 +115,7 @@ fn percent_decode(text: &str) -> String {
 
 /// Writes to a temporary file in the same directory, flushes it, then renames
 /// it over the target. The target is never opened for writing, so a crash
-/// part way through cannot truncate it. See CLAUDE.md section 9 rule 3.
+/// part way through cannot truncate it. See CLAUDE.md section 8 rule 3.
 #[tauri::command]
 pub fn write_file_atomic(
     path: String,
