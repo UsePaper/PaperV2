@@ -69,11 +69,12 @@ Do not add these. Do not suggest them. If a task needs one of them, stop and ask
 1. The source mode toggle stays. It shows the raw Markdown in a plain text area. It is
    a debug tool and a user escape hatch.
 2. The settings sheet stays, at its current size: theme, font, text size, line width, line
-   height, status bar, opens in, spellcheck. Eight settings in two groups, no tabs, no
-   search. A ninth needs a reason. Line height earned its place because the size of the
-   type, the width of the column and the space between the lines are the three things that
-   decide how a page reads, and the first two were already here; a fixed 1.7 is generous
-   for prose and cramped for nothing, which is a choice being made on the writer's behalf.
+   height, status bar, opens in, mode button, spellcheck. Nine settings in two groups, no
+   tabs, no search. A tenth needs a reason. Line height earned its place because the size
+   of the type, the width of the column and the space between the lines are the three
+   things that decide how a page reads, and the first two were already here; a fixed 1.7
+   is generous for prose and cramped for nothing, which is a choice being made on the
+   writer's behalf.
    It is offered as three named heights for the same reason the width is: nobody wants to
    pick 1.62. The status bar earned its place because the bar is the only chrome over the
    text that the user cannot otherwise dismiss, and an editor this plain should be able to
@@ -92,8 +93,19 @@ Do not add these. Do not suggest them. If a task needs one of them, stop and ask
    with no file and a file that turns out to be empty alike; a file with real
    content in it opens in reading mode, which is what was asked for. Presentation
    keeps the keyboard and needs no such exception.
-   The footer carries a **Reset**, which is an action and not a ninth setting: it puts
-   the eight back to their defaults after asking, because a sheet has no undo and the
+   **Mode button** earned its place by request: the one button in the title bar steps
+   through the three modes in order, so reaching reading from editing means passing
+   through presentation, and someone who moves between two of the modes all day pays
+   that on every trip. Set to **Switch**, the button becomes the three modes side by
+   side, and any one of them is a single press away. It changes what the control is,
+   not what the modes do or what may be written to the file.
+   The theme row offers five themes and not three: light and dark, and a low contrast
+   version of each, for eyes that find full contrast harsh over a long sitting. A
+   low contrast theme is a palette and nothing else, the same custom properties with
+   the distance between page and ink narrowed, and **System** follows the operating
+   system at full contrast only.
+   The footer carries a **Reset**, which is an action and not a tenth setting: it puts
+   the nine back to their defaults after asking, because a sheet has no undo and the
    settings are cheap to set again but not to remember.
 3. Pipe tables are in, and are the one construct here that is not CommonMark. They
    were held back for version 2 and brought forward because the alternative was
@@ -103,7 +115,8 @@ Do not add these. Do not suggest them. If a task needs one of them, stop and ask
    choice was to read them or to destroy them. There is no row or column editing and
    no way to insert one from the interface: a table is read, edited cell by cell, and
    written back.
-4. There are three modes, and one button in the title bar steps through them. Reading
+4. There are three modes, and one button in the title bar steps through them, or
+   shows all three when the mode button setting says so. Reading
    mode is in for a reason worth keeping: the promise at the top of this file is that
    the formatted result is shown in the same place as the text, so the editing view was
    always meant to be the reading view too. The syntax
@@ -200,12 +213,12 @@ code is enough for it.
 design. Typora themes are also only CSS.
 
 **The writing fonts come with the application.** Literata, Lora, Newsreader, Source
-Serif 4, Inter, iA Writer Quattro and JetBrains Mono live in `src/themes/fonts/`, as subset variable
-woff2 where the family has one. A font setting that names faces the system is
-expected to have works on macOS and does nothing on Linux, where every serif choice
-falls back to the same face. That is why every font offered
-resolves to something real on every platform. All seven are under the SIL Open Font
-License, whose one obligation is that the licence ships with the font: the text sits
+Serif 4, Inter, IBM Plex Sans, iA Writer Quattro and JetBrains Mono live in
+`src/themes/fonts/`, as subset variable woff2 where the family has one. A font setting
+that names faces the system is expected to have works on macOS and does nothing on
+Linux, where every serif choice falls back to the same face. That is why every font
+offered resolves to something real on every platform. All eight are under the SIL Open
+Font License, whose one obligation is that the licence ships with the font: the text sits
 beside the files. A new face has to clear the same bar, licence included.
 
 ---
@@ -280,6 +293,8 @@ PaperV2/
       base.css             the layout and the editor structure
       light.css            the light theme
       dark.css             the dark theme
+      light-low.css        the low contrast light theme
+      dark-low.css         the low contrast dark theme
       fonts.css            the @font-face rules for the bundled faces
       fonts/               the font files, and the licence each one ships under
 

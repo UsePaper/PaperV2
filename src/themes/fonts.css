@@ -1,14 +1,14 @@
-/* The seven faces that come with the application, so the writing surface is
+/* The eight faces that come with the application, so the writing surface is
  * the same wherever it runs. The font setting used to name faces the system was
  * expected to have, which is true on macOS and false on Linux, where every
  * serif choice fell back to the same font and the setting quietly did nothing.
  *
- * Each is a variable font, one file per slant, except iA Writer Quattro, which
- * is published as separate weights. `font-display: block` because a page of
+ * Each is a variable font, one file per slant, except iA Writer Quattro and
+ * IBM Plex Sans, which are published as separate weights. `font-display: block` because a page of
  * text reflowing a moment after it appears is worse than one that arrives
  * whole.
  *
- * All seven are under the SIL Open Font License, whose one obligation is that
+ * All eight are under the SIL Open Font License, whose one obligation is that
  * the licence ships with the font: they sit beside the files in `fonts/`. */
 
 @font-face {
@@ -89,6 +89,40 @@
   font-family: "Inter";
   src: url("./fonts/inter-italic.woff2") format("woff2-variations");
   font-weight: 100 900;
+  font-style: italic;
+  font-display: block;
+}
+
+/* IBM ships Plex Sans as separate weights, so as with Quattro the four corners
+   a document needs are here as four files. */
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("./fonts/plex-sans.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("./fonts/plex-sans-bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("./fonts/plex-sans-italic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("./fonts/plex-sans-bold-italic.woff2") format("woff2");
+  font-weight: 700;
   font-style: italic;
   font-display: block;
 }

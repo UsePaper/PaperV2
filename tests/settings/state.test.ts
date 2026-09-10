@@ -7,7 +7,9 @@ import {
   LEADING_RANGE,
   MEASURE_PRESETS,
   MEASURE_RANGE,
+  MODE_CONTROLS,
   DEFAULT_MODES,
+  THEMES,
   fontStack,
   resetSettings,
   setSettings,
@@ -41,6 +43,7 @@ describe("parseSettings", () => {
         spellcheck: false,
         statusbar: false,
         defaultMode: "presentation",
+        modeControl: "switch",
       }),
     ).toEqual({
       theme: "dark",
@@ -51,7 +54,14 @@ describe("parseSettings", () => {
       spellcheck: false,
       statusbar: false,
       defaultMode: "presentation",
+      modeControl: "switch",
     });
+  });
+
+  it("keeps each of the five themes", () => {
+    for (const entry of THEMES) {
+      expect(parseSettings({ theme: entry.id }).theme).toBe(entry.id);
+    }
   });
 
   // The bar is on unless the file says otherwise, so a file written before the
@@ -122,6 +132,22 @@ describe("parseSettings, the default mode", () => {
   });
 });
 
+describe("parseSettings, the mode button", () => {
+  it("keeps either kind of control", () => {
+    for (const entry of MODE_CONTROLS) {
+      expect(parseSettings({ modeControl: entry.id }).modeControl).toBe(entry.id);
+    }
+  });
+
+  // The button cycled before the setting existed, so a file written then
+  // keeps the button it had.
+  it("cycles when the field is missing or malformed", () => {
+    expect(parseSettings({}).modeControl).toBe("cycle");
+    expect(parseSettings({ modeControl: "toggle" }).modeControl).toBe("cycle");
+    expect(parseSettings({ modeControl: true }).modeControl).toBe("cycle");
+  });
+});
+
 describe("resetSettings", () => {
   it("puts every setting back, not just the ones it knows about", () => {
     setSettings({
@@ -133,6 +159,7 @@ describe("resetSettings", () => {
       spellcheck: false,
       statusbar: false,
       defaultMode: "reading",
+      modeControl: "switch",
     });
     expect(getSettings()).not.toEqual(DEFAULT_SETTINGS);
 

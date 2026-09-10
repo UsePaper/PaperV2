@@ -7,12 +7,15 @@ import {
   FONT_SIZE_RANGE,
   LEADING_PRESETS,
   MEASURE_PRESETS,
+  MODE_CONTROLS,
+  THEMES,
   fontStack,
   leadingPreset,
   measurePreset,
   onSettingsChange,
   resetSettings,
   setSettings,
+  type ModeControl,
   type Settings,
   type Theme,
 } from "../settings/state";
@@ -47,13 +50,10 @@ export function mountSettings(root: HTMLElement): SettingsPanel {
   heading.className = "settings-heading";
   heading.textContent = "Settings";
 
-  const theme = segmented<Theme>(
+  // Five themes are too many for a row of segments, so this one is a popup.
+  const theme = popup<Theme>(
     "Theme",
-    [
-      { value: "system", label: "System" },
-      { value: "light", label: "Light" },
-      { value: "dark", label: "Dark" },
-    ],
+    THEMES.map((entry) => ({ value: entry.id, label: entry.label })),
     (value) => setSettings({ theme: value }),
   );
 
@@ -90,6 +90,13 @@ export function mountSettings(root: HTMLElement): SettingsPanel {
     "Opens in",
     DEFAULT_MODES.map((value) => ({ value, label: MODE_LABEL[value] })),
     (value) => setSettings({ defaultMode: value }),
+  );
+
+  // Whether the title bar steps through the modes or shows all three.
+  const modeControl = segmented<ModeControl>(
+    "Mode button",
+    MODE_CONTROLS.map((entry) => ({ value: entry.id, label: entry.label })),
+    (value) => setSettings({ modeControl: value }),
   );
 
   const spellcheck = switchRow("Spellcheck", (value) =>
@@ -132,7 +139,7 @@ export function mountSettings(root: HTMLElement): SettingsPanel {
     groupTitle("Appearance"),
     group(theme.row, font.row, size.row, width.row, leading.row, statusbar.row),
     groupTitle("Editing"),
-    group(opensIn.row, spellcheck.row),
+    group(opensIn.row, modeControl.row, spellcheck.row),
     preview,
     footer,
   );
@@ -144,7 +151,7 @@ export function mountSettings(root: HTMLElement): SettingsPanel {
   });
 
   // The rows follow the settings rather than being filled in when the sheet
-  // opens. Reset changes all eight at once, and another window can change any
+  // opens. Reset changes all nine at once, and another window can change any
   // of them while this sheet is open; either way the controls would otherwise
   // sit there showing what used to be true. Setting a control's value does not
   // fire its change event, so this cannot loop.
@@ -158,6 +165,7 @@ export function mountSettings(root: HTMLElement): SettingsPanel {
     leading.set(leadingPreset(settings.leading).id);
     statusbar.set(settings.statusbar);
     opensIn.set(settings.defaultMode);
+    modeControl.set(settings.modeControl);
     spellcheck.set(settings.spellcheck);
   }
 
@@ -287,6 +295,29 @@ function segmented<T extends string>(
 
   built.control.append(bar);
   return { row: built.row, set: select };
+}
+
+/** A popup list, for a choice with more entries than a row of segments holds. */
+function popup<T extends string>(
+  label: string,
+  options: ReadonlyArray<{ value: T; label: string }>,
+  onChange: (value: T) => void,
+): { row: HTMLElement; set: (value: T) => void } {
+  const built = row(label);
+  const element = document.createElement("select");
+  element.setAttribute("aria-label", label);
+
+  for (const entry of options) {
+    const option = document.createElement("option");
+    option.value = entry.value;
+    option.textContent = entry.label;
+    element.append(option);
+  }
+
+  element.addEventListener("change", () => onChange(element.value as T));
+
+  built.control.append(element);
+  return { row: built.row, set: (value) => (element.value = value) };
 }
 
 function fontSelect(onChange: (value: string) => void): {

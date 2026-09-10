@@ -8,7 +8,31 @@
 
 import type { ViewMode } from "../editor/editor";
 
-export type Theme = "system" | "light" | "dark";
+export type Theme = "system" | "light" | "dark" | "light-low" | "dark-low";
+
+/** The themes on offer, in the order the sheet lists them. */
+export const THEMES: ReadonlyArray<{ id: Theme; label: string }> = [
+  { id: "system", label: "System" },
+  { id: "light", label: "Light" },
+  { id: "dark", label: "Dark" },
+  // The same two palettes with the distance between page and ink narrowed,
+  // for eyes that find full contrast harsh over a long sitting.
+  { id: "light-low", label: "Low contrast light" },
+  { id: "dark-low", label: "Low contrast dark" },
+];
+
+/**
+ * What the mode button in the title bar is. A cycle steps through the three
+ * modes in order. A switch shows all three, so any one is a single press
+ * away, for people who would rather not pass through presentation to reach
+ * reading.
+ */
+export type ModeControl = "cycle" | "switch";
+
+export const MODE_CONTROLS: ReadonlyArray<{ id: ModeControl; label: string }> = [
+  { id: "cycle", label: "Cycle" },
+  { id: "switch", label: "Switch" },
+];
 
 export interface Settings {
   theme: Theme;
@@ -25,6 +49,8 @@ export interface Settings {
   statusbar: boolean;
   /** The mode a new window opens in. Windows already open are left alone. */
   defaultMode: ViewMode;
+  /** Whether the title bar steps through the modes or lays them side by side. */
+  modeControl: ModeControl;
 }
 
 /**
@@ -59,6 +85,11 @@ export const BODY_FONTS: ReadonlyArray<{ id: string; label: string; stack: strin
     id: "inter",
     label: "Inter",
     stack: '"Inter", sans-serif',
+  },
+  {
+    id: "plex-sans",
+    label: "IBM Plex Sans",
+    stack: '"IBM Plex Sans", sans-serif',
   },
   {
     id: "quattro",
@@ -130,6 +161,7 @@ export const DEFAULT_SETTINGS: Settings = {
   spellcheck: true,
   statusbar: true,
   defaultMode: "editing",
+  modeControl: "cycle",
 };
 
 function clamp(value: number, min: number, max: number): number {
@@ -145,10 +177,9 @@ export function parseSettings(raw: unknown): Settings {
   if (typeof raw !== "object" || raw === null) return { ...DEFAULT_SETTINGS };
   const input = raw as Partial<Record<keyof Settings, unknown>>;
 
-  const theme =
-    input.theme === "light" || input.theme === "dark" || input.theme === "system"
-      ? input.theme
-      : DEFAULT_SETTINGS.theme;
+  const theme = THEMES.some((entry) => entry.id === input.theme)
+    ? (input.theme as Theme)
+    : DEFAULT_SETTINGS.theme;
 
   const font = BODY_FONTS.some((entry) => entry.id === input.font)
     ? (input.font as string)
@@ -181,7 +212,21 @@ export function parseSettings(raw: unknown): Settings {
     ? (input.defaultMode as ViewMode)
     : DEFAULT_SETTINGS.defaultMode;
 
-  return { theme, font, fontSize, measure, leading, spellcheck, statusbar, defaultMode };
+  const modeControl = MODE_CONTROLS.some((entry) => entry.id === input.modeControl)
+    ? (input.modeControl as ModeControl)
+    : DEFAULT_SETTINGS.modeControl;
+
+  return {
+    theme,
+    font,
+    fontSize,
+    measure,
+    leading,
+    spellcheck,
+    statusbar,
+    defaultMode,
+    modeControl,
+  };
 }
 
 /** The named width closest to a stored number. */
@@ -232,7 +277,7 @@ export function setSettings(next: Partial<Settings>): void {
 }
 
 /**
- * One change rather than eight, so the listeners run once. A whole object
+ * One change rather than nine, so the listeners run once. A whole object
  * rather than a merge, so a setting added later is not quietly left behind.
  */
 export function resetSettings(): void {

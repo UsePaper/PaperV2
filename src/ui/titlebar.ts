@@ -1,6 +1,7 @@
 import type { ViewMode } from "../editor/editor";
 import { setWindowTitle, titlebarMetrics } from "../file/bridge";
 import { displayName, getFileState, onFileStateChange } from "../file/state";
+import type { ModeControl } from "../settings/state";
 
 /** The gap left between the last traffic light and the file name. */
 const BUTTON_GAP = 12;
@@ -8,13 +9,17 @@ const BUTTON_GAP = 12;
 export interface TitlebarHandle {
   /** Reflects the mode the document is being shown in. */
   setMode(mode: ViewMode): void;
+  /** Shows the modes as one button that cycles, or as three side by side. */
+  setModeControl(control: ModeControl): void;
   /** Reflects whether the outline panel is out. */
   setOutlineOpen(open: boolean): void;
 }
 
 export interface TitlebarOptions {
-  /** Asked for when the mode button is pressed. */
+  /** Asked for when the cycling mode button is pressed. */
   onCycleMode: () => void;
+  /** Asked for when one of the three modes of the switch is pressed. */
+  onSelectMode: (mode: ViewMode) => void;
   /** Asked for when the outline button is pressed. */
   onToggleOutline: () => void;
 }
@@ -55,6 +60,28 @@ export function mountTitlebar(
   mode.className = "titlebar-mode";
   mode.addEventListener("click", options.onCycleMode);
 
+  // The same three modes laid side by side, for people who would rather not
+  // step through them. Only one of the two controls is shown at a time.
+  const modes = document.createElement("div");
+  modes.className = "titlebar-modes";
+  modes.setAttribute("role", "radiogroup");
+  modes.setAttribute("aria-label", "Mode");
+  modes.hidden = true;
+  const segments = MODE_ORDER.map((each) => {
+    const segment = document.createElement("button");
+    segment.type = "button";
+    segment.className = "titlebar-mode";
+    segment.dataset.mode = each;
+    segment.setAttribute("role", "radio");
+    segment.setAttribute("aria-checked", "false");
+    segment.title = MODE_LABEL[each];
+    segment.setAttribute("aria-label", MODE_LABEL[each]);
+    segment.append(modeIcon(each));
+    segment.addEventListener("click", () => options.onSelectMode(each));
+    modes.append(segment);
+    return { mode: each, segment };
+  });
+
   // Nearest the edge the panel flows in from.
   const outline = document.createElement("button");
   outline.type = "button";
@@ -65,7 +92,7 @@ export function mountTitlebar(
   outline.append(outlineIcon());
   outline.addEventListener("click", options.onToggleOutline);
 
-  root.append(title, mode, outline);
+  root.append(title, mode, modes, outline);
 
   onFileStateChange(() => {
     const { dirty } = getFileState();
@@ -91,6 +118,15 @@ export function mountTitlebar(
       const label = `${MODE_LABEL[current]}, press for ${MODE_LABEL[nextMode(current)]}`;
       mode.title = label;
       mode.setAttribute("aria-label", label);
+
+      for (const entry of segments) {
+        entry.segment.setAttribute("aria-checked", String(entry.mode === current));
+      }
+    },
+
+    setModeControl(control: ModeControl): void {
+      mode.hidden = control === "switch";
+      modes.hidden = control !== "switch";
     },
 
     setOutlineOpen(open: boolean): void {

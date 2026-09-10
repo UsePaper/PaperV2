@@ -57,6 +57,8 @@ import "./themes/fonts.css";
 import "./themes/base.css";
 import "./themes/light.css";
 import "./themes/dark.css";
+import "./themes/light-low.css";
+import "./themes/dark-low.css";
 
 function element<T extends HTMLElement>(id: string): T {
   const found = document.getElementById(id);
@@ -113,6 +115,7 @@ const outlinePanel = mountOutline(
 
 const titlebar = mountTitlebar(element("titlebar"), {
   onCycleMode: () => setMode(nextMode(mode)),
+  onSelectMode: (next) => setMode(next),
   onToggleOutline: () => runCommand("toggle_outline"),
 });
 
@@ -152,6 +155,7 @@ let persistTimer: number | undefined;
 
 onSettingsChange((settings) => {
   applySettings(settings);
+  titlebar.setModeControl(settings.modeControl);
   editor.setSpellcheck(settings.spellcheck);
   // A diagram is drawn in the theme that was current when it was drawn.
   editor.refreshDiagrams();

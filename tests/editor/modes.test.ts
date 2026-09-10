@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
 import { TextSelection } from "prosemirror-state";
-import { Editor } from "../../src/editor/editor";
-import { MODE_ORDER, nextMode } from "../../src/ui/titlebar";
+import { Editor, type ViewMode } from "../../src/editor/editor";
+import { MODE_ORDER, mountTitlebar, nextMode } from "../../src/ui/titlebar";
 
 /**
  * Three ways of showing the same document. What separates them is what is
@@ -82,5 +82,61 @@ describe("the modes", () => {
     expect(nextMode("editing")).toBe("presentation");
     expect(nextMode("presentation")).toBe("reading");
     expect(nextMode("reading")).toBe("editing");
+  });
+});
+
+/**
+ * The title bar offers the modes either as one button that cycles or as
+ * three side by side. The setting decides which is shown, and a press on
+ * either kind names the mode it stands for.
+ */
+describe("the mode control in the title bar", () => {
+  function titlebar() {
+    const root = document.createElement("div");
+    document.body.append(root);
+    const cycled: number[] = [];
+    const selected: ViewMode[] = [];
+    const handle = mountTitlebar(root, {
+      onCycleMode: () => cycled.push(1),
+      onSelectMode: (mode) => selected.push(mode),
+      onToggleOutline: () => {},
+    });
+    handle.setMode("editing");
+    // The cycling button sits in the bar itself. The three of the switch sit
+    // inside their own group.
+    const cycle = root.querySelector<HTMLElement>(":scope > .titlebar-mode");
+    const switcher = root.querySelector<HTMLElement>(".titlebar-modes");
+    if (!cycle || !switcher) throw new Error("the title bar is missing a control");
+    return { handle, cycle, switcher, cycled, selected };
+  }
+
+  it("cycles from the single button unless told otherwise", () => {
+    const made = titlebar();
+    made.handle.setModeControl("cycle");
+    expect(made.cycle.hidden).toBe(false);
+    expect(made.switcher.hidden).toBe(true);
+
+    made.cycle.click();
+    expect(made.cycled).toHaveLength(1);
+  });
+
+  it("goes straight to any mode from the switch", () => {
+    const made = titlebar();
+    made.handle.setModeControl("switch");
+    expect(made.cycle.hidden).toBe(true);
+    expect(made.switcher.hidden).toBe(false);
+
+    const book = made.switcher.querySelector<HTMLElement>('[data-mode="reading"]');
+    book?.click();
+    expect(made.selected).toEqual(["reading"]);
+  });
+
+  it("marks the mode that is showing on the switch", () => {
+    const made = titlebar();
+    made.handle.setMode("presentation");
+    const checked = [...made.switcher.querySelectorAll('[aria-checked="true"]')].map(
+      (each) => (each as HTMLElement).dataset.mode,
+    );
+    expect(checked).toEqual(["presentation"]);
   });
 });

@@ -1,0 +1,47 @@
+/* The low contrast light theme. Paper a shade darker and ink a shade lighter
+   than the light theme, for eyes that find pure black on white harsh over a
+   long sitting. It only redefines the colours set in light.css, and the
+   distance between the page and the text stays wide enough to read by. */
+
+:root[data-theme="light-low"] {
+  --background: #edece7;
+  --text: #45453f;
+  --text-muted: #7d7d76;
+  --text-faint: #a9a9a2;
+
+  --chrome-border: #dcdbd5;
+  --bar-glass: rgb(237 236 231 / 55%);
+  --bar-blur: blur(30px) saturate(190%);
+
+  --surface: #f2f1ec;
+  --surface-glass: rgb(240 239 234 / 74%);
+  --scrim: rgb(0 0 0 / 8%);
+  --group: rgb(255 255 255 / 40%);
+  --group-separator: rgb(0 0 0 / 7%);
+  --control: #f4f3ee;
+  --control-border: #cbcac4;
+  --control-track: #d6d5cf;
+  --switch-off: #d0cfc9;
+  --knob: #fbfaf7;
+  --chevron: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="14" viewBox="0 0 10 14"><path d="M2 5.6 5 2.6l3 3M2 8.4l3 3 3-3" fill="none" stroke="%237d7d76" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+
+  --accent: #4a7d63;
+  --accent-faint: #c3d6cb;
+  --on-accent: #ffffff;
+  --marker: #b3b2ab;
+  --rule: #d8d7d1;
+  --quote-border: #d8d7d1;
+  --code-inline: #e5e4de;
+  --code-block: #e8e7e1;
+
+  --tok-keyword: #8f5a80;
+  --tok-string: #4a7d63;
+  --tok-comment: #8f8f87;
+  --tok-literal: #a3714f;
+  --tok-function: #4b6f8f;
+  --tok-type: #857052;
+  --tok-property: #4f7482;
+  --tok-punct: #7d7d76;
+  --tok-tag: #91595a;
+  --tok-invalid: #b0564d;
+}

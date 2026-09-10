@@ -1,0 +1,48 @@
+/* The low contrast dark theme. A lifted ground and a dimmed ink, for the same
+   reason as light-low: bright text on near black glares at night. It only
+   redefines the colours set in light.css. */
+
+:root[data-theme="dark-low"] {
+  color-scheme: dark;
+
+  --background: #262624;
+  --text: #b9b9b2;
+  --text-muted: #85857e;
+  --text-faint: #5c5c56;
+
+  --chrome-border: #34342f;
+  --bar-glass: rgb(38 38 36 / 50%);
+  --bar-blur: blur(30px) saturate(190%);
+
+  --surface: #30302c;
+  --surface-glass: rgb(48 48 44 / 76%);
+  --scrim: rgb(0 0 0 / 22%);
+  --group: rgb(255 255 255 / 4%);
+  --group-separator: rgb(255 255 255 / 7%);
+  --control: #3a3a35;
+  --control-border: #47473f;
+  --control-track: #40403a;
+  --switch-off: #47473f;
+  --knob: #c9c9c2;
+  --chevron: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="14" viewBox="0 0 10 14"><path d="M2 5.6 5 2.6l3 3M2 8.4l3 3 3-3" fill="none" stroke="%2385857e" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+
+  --accent: #6fa387;
+  --accent-faint: #354a3f;
+  --on-accent: #10221a;
+  --marker: #55554f;
+  --rule: #383833;
+  --quote-border: #383833;
+  --code-inline: #2d2d2a;
+  --code-block: #2a2a27;
+
+  --tok-keyword: #b487a8;
+  --tok-string: #6fa387;
+  --tok-comment: #6f6f68;
+  --tok-literal: #bd8f62;
+  --tok-function: #6f9ac2;
+  --tok-type: #b09d6c;
+  --tok-property: #7aa5b2;
+  --tok-punct: #85857e;
+  --tok-tag: #bc8b8b;
+  --tok-invalid: #d47a6a;
+}

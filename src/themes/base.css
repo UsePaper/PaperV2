@@ -101,6 +101,25 @@ body[data-platform="mac"] .titlebar {
   color: var(--text);
 }
 
+/* The same three modes as a switch, for those who would rather not step
+   through them. The one showing is the one that is present, and the other two
+   stay as quiet as the single button does. */
+.titlebar-modes {
+  display: flex;
+  flex: none;
+  gap: 2px;
+}
+
+.titlebar-modes .titlebar-mode[aria-checked="true"] {
+  color: var(--text);
+}
+
+/* Both are flex boxes, which would otherwise win over the hidden attribute. */
+.titlebar-mode[hidden],
+.titlebar-modes[hidden] {
+  display: none;
+}
+
 /* Nothing to write into while reading, so the hint would be a lie. */
 body.mode-reading .pm-placeholder::before {
   content: none;
