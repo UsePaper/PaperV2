@@ -311,7 +311,7 @@ PaperV2/
         dialog.rs          open_dialog, save_as_dialog
         settings.rs        read_settings, write_settings
         window.rs          new_window, initial_path, close_all_windows
-        chrome.rs          titlebar_metrics, measured from AppKit
+        chrome.rs          titlebar_metrics from AppKit, and the remembered frame
         watch.rs           the external file change watcher
         update.rs          the manual update check. See exception 5.
         cli.rs             installs the paper command. See exception 7.
@@ -452,6 +452,19 @@ before the measurement lands.
 **Every window needs the capability.** `capabilities/default.json` lists
 `["main", "doc-*"]`. A new window whose label does not match gets no permissions and
 fails at runtime.
+
+**The window frame is remembered on macOS, in AppKit's own store.** macOS only
+restores a window's size and position when an application asks, and Tauri never did, so
+every window used to open at the size in the configuration. `commands/chrome.rs` saves
+the frame under the one name `Paper` on every move and resize, and `remember_frame` puts
+the saved frame on a new window before it is shown, which is why the windows are
+declared hidden in `tauri.conf.json` and in `new_window`. The read back is done by hand
+rather than with AppKit's `setFrameUsingName`, because that restores relative to the
+screen a never shown window happens to be on, and with two displays it carried the
+window to the wrong one. One name for all windows on purpose: the frame a person settles
+on is about the window, not about a file. A cascaded window takes the saved size but
+keeps its cascade position, or it would land exactly on the window it was opened from.
+Elsewhere `remember_frame` just shows the window.
 
 - `src/ui/titlebar.ts` only paints the document name into the transparent title bar
   area. On macOS that bar reserves room for the traffic lights.

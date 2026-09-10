@@ -21,15 +21,23 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 notify = "8.2.0"
 
-# Only to read where macOS drew the traffic lights. Both crates already come in
-# through tauri, so this pins no new versions.
+# Only to read where macOS drew the traffic lights, and to have AppKit remember
+# the window frame. All three crates already come in through tauri, so this pins
+# no new versions.
 [target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
 objc2-app-kit = { version = "0.3", features = [
   "NSWindow",
   "NSButton",
   "NSControl",
   "NSView",
   "NSResponder",
+  "NSScreen",
+] }
+objc2-foundation = { version = "0.3", features = [
+  "NSString",
+  "NSUserDefaults",
+  "NSGeometry",
 ] }
 
 # Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration

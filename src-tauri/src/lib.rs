@@ -16,6 +16,12 @@ pub fn run() {
             // macOS keeps the window list itself, once the menu is on the bar.
             menu::attach_window_menu(&window_menu);
 
+            // The first window is declared hidden in the configuration and is
+            // shown here, at the frame the last window was left at.
+            if let Some(main) = app.get_webview_window("main") {
+                commands::chrome::remember_frame(&main, false);
+            }
+
             // Windows and Linux hand a double clicked file over as an argument.
             // macOS does not; it sends `RunEvent::Opened` instead.
             #[cfg(not(target_os = "macos"))]
@@ -55,6 +61,12 @@ pub fn run() {
             // every window and none of them is key.
             tauri::WindowEvent::Focused(true) => {
                 commands::window::remember_focus(window.app_handle(), window.label());
+            }
+            // The frame the next window opens at is the last one anyone set.
+            tauri::WindowEvent::Moved(_) | tauri::WindowEvent::Resized(_) => {
+                if let Some(webview) = window.get_webview_window(window.label()) {
+                    commands::chrome::save_frame(&webview);
+                }
             }
             // A closed document leaves its watcher, its thread and its file
             // handle behind unless they are released here.

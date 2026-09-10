@@ -85,11 +85,13 @@ pub async fn new_window_for<R: Runtime>(
             .insert(label.clone(), path);
     }
 
+    // Hidden until the remembered frame is on it. See `chrome::remember_frame`.
     let mut builder = WebviewWindowBuilder::new(&app, &label, WebviewUrl::default())
         .title("Paper")
         .inner_size(900.0, 680.0)
         .min_inner_size(480.0, 360.0)
-        .decorations(true);
+        .decorations(true)
+        .visible(false);
 
     #[cfg(target_os = "macos")]
     {
@@ -98,16 +100,21 @@ pub async fn new_window_for<R: Runtime>(
             .hidden_title(true);
     }
 
-    // Offset from whichever window is in front. Each new one lands relative to
-    // the last, so a run of them cascades on its own.
-    if let Some(front) = focused(&app) {
+    // Offset from whichever window is in front, or was last. Each new one lands
+    // relative to it, so a run of them cascades on its own. The last focused
+    // window counts because a new window now takes the remembered frame, which
+    // is that window's frame: without the step it would land exactly on top.
+    let mut cascaded = false;
+    if let Some(front) = focused_or_last(&app) {
         if let (Ok(position), Ok(scale)) = (front.outer_position(), front.scale_factor()) {
             let logical = position.to_logical::<f64>(scale);
             builder = builder.position(logical.x + CASCADE, logical.y + CASCADE);
+            cascaded = true;
         }
     }
 
     let window = builder.build().map_err(|err| err.to_string())?;
+    super::chrome::remember_frame(&window, cascaded);
     Ok(window.label().to_string())
 }
 
