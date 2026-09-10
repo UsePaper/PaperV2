@@ -104,9 +104,9 @@ Do not add these. Do not suggest them. If a task needs one of them, stop and ask
    no way to insert one from the interface: a table is read, edited cell by cell, and
    written back.
 4. There are three modes, and one button in the title bar steps through them. Reading
-   mode was on this list, and came off it for a reason worth keeping: the promise at
-   the top of this file is that the formatted result is shown in the same place as the
-   text, so the editing view was always meant to be the reading view too. The syntax
+   mode is in for a reason worth keeping: the promise at the top of this file is that
+   the formatted result is shown in the same place as the text, so the editing view was
+   always meant to be the reading view too. The syntax
    markers are the one thing that breaks that promise, because the caret turns a line
    back into source. Presentation puts the markers away and keeps the keyboard.
    Reading puts the keyboard away as well: no caret, nothing to type into, and the
@@ -160,16 +160,16 @@ Do not add these. Do not suggest them. If a task needs one of them, stop and ask
    its own output to support, and that is a different program from this one.
 
 8. **The outline panel**, toggled from the View menu and from a button in the
-   title bar, flowing in over the right edge. It was on the list above and came
-   off it by request, and what let it in is that it obeys the same law as the
+   title bar, flowing in over the right edge. It is in by request, and what
+   lets it in is that it obeys the same law as the
    find bar: it floats over the page instead of reserving a strip, so opening
    it never reflows the text, and it reads the document without ever writing
    it. A click scrolls the heading to the top and, where there is a
    caret, puts the caret there; as the page scrolls, the entry over the section
    being read is marked. It is not chrome the document cannot shed: the panel
    is closed until asked for, withdraws on its own after five seconds left
-   alone — three, once a click has arrived somewhere — remembers nothing, and
-   belongs to its window alone — a toggle, not a ninth setting.
+   alone, or three once a click has arrived somewhere, remembers nothing, and
+   belongs to its window alone. It is a toggle, not a ninth setting.
 
    **The line to hold is that the outline lists headings and navigates.** A
    panel that filters, folds, drags sections into a new order, or lists
@@ -187,7 +187,7 @@ Do not add these. Do not suggest them. If a task needs one of them, stop and ask
 | Language | TypeScript (strict mode) |
 | UI | Plain TypeScript. No framework. |
 | Editor engine | ProseMirror |
-| Markdown | remark through Milkdown, or `prosemirror-markdown` |
+| Markdown | `markdown-it` tokens into the ProseMirror document through `prosemirror-markdown` |
 | Code blocks | CodeMirror 6 inside a ProseMirror NodeView |
 | Tests | Vitest |
 
@@ -201,9 +201,9 @@ design. Typora themes are also only CSS.
 
 **The writing fonts come with the application.** Literata, Lora, Newsreader, Source
 Serif 4, Inter, iA Writer Quattro and JetBrains Mono live in `src/themes/fonts/`, as subset variable
-woff2 where the family has one. The font setting used to name faces the system was
-expected to have, which is true on macOS and false on Linux, where every serif choice
-fell back to the same face and the setting quietly did nothing. Every font offered now
+woff2 where the family has one. A font setting that names faces the system is
+expected to have works on macOS and does nothing on Linux, where every serif choice
+falls back to the same face. That is why every font offered
 resolves to something real on every platform. All seven are under the SIL Open Font
 License, whose one obligation is that the licence ships with the font: the text sits
 beside the files. A new face has to clear the same bar, licence included.
@@ -391,7 +391,7 @@ frontend.
 ### Plugins in Use
 
 - `tauri-plugin-dialog` for the open and save dialogs
-- The `notify` crate for the external file change watcher, when it is built
+- The `notify` crate for the external file change watcher
 
 The file read and write are our own commands on `std::fs` in `src-tauri/src/commands/`,
 not `tauri-plugin-fs`. All of it runs in Rust, so the plugin would only add a
@@ -415,7 +415,8 @@ package with `pnpm add`. The two versions must match.
 Tauri uses WebKitGTK on Linux. Its `contenteditable` support is weaker than Chromium.
 Expect defects in the caret position, the selection, and the IME input.
 
-- Test any change to `src/editor/` on Linux before you call it complete.
+- A change to `src/editor/` is not complete until it has been tested on Linux. If you
+  cannot run Linux from where you are, say so when you report.
 - Do not use a browser only API without a check. Examples: the `Highlight` API, some
   `Selection` methods, and newer CSS features.
 - If a feature fails on WebKitGTK only, write the workaround with a comment that names
